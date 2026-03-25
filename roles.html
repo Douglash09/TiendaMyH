@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Control de Inventario — Seleccionar Rol</title>
+</head>
+<body>
+
+<div class="wrap">
+    <header>
+        <div>
+            <h1>Selecciona tu rol</h1>
+            <p>Elige cómo ingresar al sistema de Control de Inventario</p>
+        </div>
+        <button class="mode-btn" id="modeToggle">Modo oscuro</button>
+    </header>
+
+    <section class="card">
+        <!-- ADMIN -->
+        <div class="row admin">
+            <div class="row__pill"></div>
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <path d="M12 3l7 3v5c0 5-3.5 9-7 10-3.5-1-7-5-7-10V6l7-3z"></path>
+                    <path d="M9 12l2 2 4-4"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="title">ADMINISTRADOR</div>
+                <div class="subtitle">Acceso completo al sistema</div>
+            </div>
+            <button class="btn" data-go="login_admin.html">USAR</button>
+        </div>
+
+        <!-- EMPLEADO -->
+        <div class="row empleado">
+            <div class="row__pill"></div>
+            <div class="icon">
+                <svg viewBox="0 0 24 24">
+                    <circle cx="12" cy="7.5" r="3.2"></circle>
+                    <path d="M4 20c0-4.2 3.4-7.6 7.6-7.6h.8C16.6 12.4 20 15.8 20 20"></path>
+                </svg>
+            </div>
+            <div>
+                <div class="title">EMPLEADO</div>
+                <div class="subtitle">Acceso limitado</div>
+            </div>
+            <button class="btn" data-go="login_empleado.html">USAR</button>
+        </div>
+    </section>
+
+    <footer>
+        © <span id="y"></span> Douglas Omar Mendez Hernandez
+    </footer>
+</div>
+
+<script>
+    // ===== FUNCIÓN PARA CARGAR EL MODO GUARDADO =====
+    function loadSavedMode() {
+        const darkMode = localStorage.getItem("darkMode") === "true";
+        const btn = document.getElementById("modeToggle");
+        
+        if (darkMode) {
+            document.body.classList.add("dark");
+            btn.textContent = "Modo claro";
+        } else {
+            document.body.classList.remove("dark");
+            btn.textContent = "Modo oscuro";
+        }
+    }
+
+    // ===== FUNCIÓN PARA CAMBIAR MODO =====
+    function toggleDarkMode() {
+        document.body.classList.toggle("dark");
+        const btn = document.getElementById("modeToggle");
+        const isDark = document.body.classList.contains("dark");
+        btn.textContent = isDark ? "Modo claro" : "Modo oscuro";
+        localStorage.setItem("darkMode", isDark);
+    }
+
+    // ===== ACTUALIZAR AÑO =====
+    document.getElementById("y").textContent = new Date().getFullYear();
+
+    // ===== REDIRECCIÓN DE BOTONES =====
+    document.querySelectorAll(".btn").forEach(btn => {
+        btn.onclick = () => {
+            window.location.href = btn.dataset.go;
+        };
+    });
+
+    // ===== CLICK EN FILA COMPLETA =====
+    document.querySelectorAll(".row").forEach(row => {
+        row.onclick = (e) => {
+            if(e.target.tagName === "BUTTON") return;
+            row.querySelector(".btn").click();
+        };
+    });
+
+    // ===== CARGAR MODO GUARDADO AL INICIAR =====
+    loadSavedMode();
+
+    // ===== EVENT LISTENER PARA BOTÓN MODO =====
+    document.getElementById("modeToggle").onclick = toggleDarkMode;
+</script>
+
+<style>
+    :root {
+        --bg: #eef2f7;
+        --card: #ffffff;
+        --pill-admin: #4c6ef5;
+        --pill-emp: #20c997;
+        --text: #000;
+        --muted: #555;
+        --icon: #000;
+        --icon-bg: rgba(0,0,0,.25);
+        --shadow: 0 10px 24px rgba(0,0,0,.08);
+        --radius-xl: 22px;
+        --radius-pill: 999px;
+    }
+
+    .dark {
+        --bg: #0f172a;
+        --card: #1e293b;
+        --pill-admin: #6366f1;
+        --pill-emp: #10b981;
+        --text: #ffffff;
+        --muted: #cbd5e1;
+        --icon: #ffffff;
+        --icon-bg: rgba(255,255,255,.2);
+        --shadow: 0 10px 24px rgba(0,0,0,.4);
+    }
+
+    body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial;
+        background: var(--bg);
+        color: var(--text);
+        min-height: 100vh;
+        display: grid;
+        place-items: center;
+        transition: .3s;
+    }
+
+    .wrap {
+        width: min(880px, 92vw);
+    }
+
+    header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    header h1 {
+        margin: 0;
+        font-size: 30px;
+    }
+
+    header p {
+        margin: 4px 0 0;
+        color: var(--muted);
+    }
+
+    .mode-btn {
+        border: none;
+        padding: 8px 14px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 600;
+        background: #111;
+        color: #fff;
+    }
+
+    .dark .mode-btn {
+        background: #fff;
+        color: #111;
+    }
+
+    .card {
+        background: var(--card);
+        border-radius: var(--radius-xl);
+        padding: 28px;
+        box-shadow: var(--shadow);
+    }
+
+    .row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        align-items: center;
+        gap: 16px;
+        border-radius: var(--radius-pill);
+        padding: 12px 14px;
+        position: relative;
+        cursor: pointer;
+    }
+
+    .row + .row {
+        margin-top: 14px;
+    }
+
+    .row__pill {
+        position: absolute;
+        inset: 0;
+        border-radius: var(--radius-pill);
+        z-index: -1;
+        opacity: .95;
+    }
+
+    .admin .row__pill {
+        background: var(--pill-admin);
+    }
+
+    .empleado .row__pill {
+        background: var(--pill-emp);
+    }
+
+    .icon {
+        width: 44px;
+        height: 44px;
+        display: grid;
+        place-items: center;
+        background: var(--icon-bg);
+        border-radius: 12px;
+    }
+
+    .icon svg {
+        width: 26px;
+        height: 26px;
+        stroke: var(--icon);
+        fill: none;
+        stroke-width: 2;
+    }
+
+    .title {
+        font-weight: 800;
+        letter-spacing: .4px;
+        color: var(--text);
+    }
+
+    .subtitle {
+        color: var(--text);
+        font-size: .9rem;
+        margin-top: 4px;
+        opacity: .85;
+    }
+
+    .btn {
+        border: none;
+        padding: 10px 18px;
+        border-radius: 999px;
+        cursor: pointer;
+        font-weight: 800;
+        text-transform: uppercase;
+        background: rgba(0,0,0,.25);
+        color: #fff;
+    }
+
+    .btn:hover {
+        background: rgba(0,0,0,.45);
+    }
+
+    footer {
+        text-align: center;
+        margin-top: 18px;
+        color: var(--muted);
+        font-size: .9rem;
+    }
+
+    @media(max-width: 520px) {
+        .row {
+            grid-template-columns: 40px 1fr auto;
+            padding: 10px;
+        }
+
+        .icon {
+            width: 40px;
+            height: 40px;
+        }
+
+        .icon svg {
+            width: 22px;
+            height: 22px;
+        }
+
+        .btn {
+            padding: 8px 14px;
+            font-size: .85rem;
+        }
+    }
+</style>
+
+</body>
+</html>
