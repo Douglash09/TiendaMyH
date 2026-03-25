@@ -1,0 +1,17 @@
+{
+  "name": "tienda-myh-sistema",
+  "version": "1.0.0",
+  "description": "Sistema de login para Tienda M&H con Node.js, Express y MySQL",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "author": "Douglas Hernandez",
+  "license": "ISC",
+  "dependencies": {
+    "bcrypt": "^6.0.0",
+    "cors": "^2.8.5",
+    "express": "^4.18.2",
+    "mysql2": "^3.9.7"
+  }
+}
