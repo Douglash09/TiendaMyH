@@ -96,37 +96,73 @@
             return;
         }
 
-        showMessage("Verificando...", "");
+        showMessage("Verificando credenciales...", "");
 
         try {
             const response = await fetch("/login_admin", {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json"
+                },
                 body: JSON.stringify({ usuario, password })
             });
+
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
 
             const data = await response.json();
 
             if (data.success) {
-                showMessage("Acceso concedido", "ok");
+                // Guardar información de la sesión
+                localStorage.setItem("sesion_activa", "true");
+                localStorage.setItem("usuario", data.usuario);
+                localStorage.setItem("nombre_completo", data.nombre_completo);
+                localStorage.setItem("rol", data.rol);
+                localStorage.setItem("login_time", new Date().toISOString());
+                
+                showMessage("✅ Acceso concedido. Redirigiendo...", "ok");
+                
                 setTimeout(() => {
                     window.location.href = "index_admin.html";
                 }, 500);
             } else {
-                showMessage("Credenciales inválidas", "err");
+                showMessage(data.message || "Credenciales inválidas", "err");
             }
         } catch (error) {
-            showMessage("Error de conexión con el servidor", "err");
-            console.error("Error:", error);
+            console.error("Error en login:", error);
+            showMessage("❌ Error de conexión con el servidor. ¿El servidor está corriendo?", "err");
         }
     }
 
     // ===== CARGAR MODO GUARDADO AL INICIAR =====
     loadSavedMode();
 
+    // ===== VERIFICAR SI YA HAY SESIÓN ACTIVA =====
+    function checkExistingSession() {
+        const sessionActive = localStorage.getItem("sesion_activa");
+        const rol = localStorage.getItem("rol");
+        
+        if (sessionActive === "true" && rol === "Administrador") {
+            const confirmar = confirm("Ya tienes una sesión activa. ¿Quieres continuar en el panel?");
+            if (confirmar) {
+                window.location.href = "index_admin.html";
+            } else {
+                localStorage.removeItem("sesion_activa");
+                localStorage.removeItem("usuario");
+                localStorage.removeItem("nombre_completo");
+                localStorage.removeItem("rol");
+                localStorage.removeItem("login_time");
+            }
+        }
+    }
+
     // ===== EVENT LISTENERS =====
     modeBtn.addEventListener("click", toggleDarkMode);
     form.addEventListener("submit", handleLogin);
+    
+    // Verificar sesión existente
+    checkExistingSession();
 </script>
 
 <style>
@@ -183,6 +219,11 @@
         text-decoration: none;
         font-weight: 600;
         color: var(--muted);
+        transition: color 0.3s;
+    }
+
+    .volver:hover {
+        color: var(--btn);
     }
 
     .mode {
@@ -193,6 +234,12 @@
         background: #111;
         color: #fff;
         font-family: 'Poppins', sans-serif;
+        transition: all 0.3s;
+    }
+
+    .mode:hover {
+        transform: scale(1.05);
+        opacity: 0.9;
     }
 
     .dark .mode {
@@ -205,6 +252,7 @@
         border-radius: 20px;
         padding: 30px;
         box-shadow: 0 10px 25px rgba(0,0,0,.1);
+        transition: background 0.3s;
     }
 
     .center {
@@ -220,6 +268,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
+        transition: background 0.3s;
     }
 
     .icon svg {
@@ -228,6 +277,7 @@
         stroke: var(--icon);
         fill: none;
         stroke-width: 2;
+        transition: stroke 0.3s;
     }
 
     .tag {
@@ -251,6 +301,7 @@
         color: var(--muted);
         font-size: 0.9rem;
         margin-bottom: 15px;
+        transition: color 0.3s;
     }
 
     label {
@@ -270,6 +321,12 @@
         color: var(--text);
         outline: none;
         font-family: 'Poppins', sans-serif;
+        transition: all 0.3s;
+    }
+
+    input:focus {
+        transform: scale(1.02);
+        box-shadow: 0 0 0 2px var(--btn);
     }
 
     .login {
@@ -283,20 +340,45 @@
         font-weight: 600;
         cursor: pointer;
         font-family: 'Poppins', sans-serif;
+        transition: all 0.3s;
     }
 
     .login:hover {
         opacity: .9;
+        transform: translateY(-2px);
+    }
+
+    .login:active {
+        transform: translateY(0);
     }
 
     .msg {
         margin-top: 10px;
         text-align: center;
         font-size: 0.9rem;
+        animation: fadeIn 0.3s;
     }
 
-    .ok { color: #28a745; }
-    .err { color: #dc3545; }
+    .ok { 
+        color: #28a745; 
+        font-weight: 600;
+    }
+    
+    .err { 
+        color: #dc3545; 
+        font-weight: 600;
+    }
+
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
 </style>
 
 </body>

@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+    <title>Gestión de Productos - Supermercado</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #eef2f7;
+            --card: #ffffff;
+            --text: #1a2c3e;
+            --muted: #5a6e7c;
+            --primary: #2c7da0;
+            --primary-dark: #1f5e7a;
+            --success: #2e7d32;
+            --danger: #c62828;
+            --warning: #f9a825;
+            --border: #dce4ec;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --table-header: #f8fafc;
+        }
+
+        .dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --primary: #3b82f6;
+            --primary-dark: #2563eb;
+            --border: #334155;
+            --table-header: #0f172a;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 24px;
+            transition: all 0.3s;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header-bar {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 20px 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo h1 {
+            font-size: 1.6rem;
+            background: linear-gradient(135deg, var(--primary), #48cae4);
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .logo p {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 40px;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: 'Poppins', sans-serif;
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-danger {
+            background: var(--danger);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: #1a2c3e;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.05);
+        }
+
+        /* Panel de búsqueda estilo supermercado */
+        .search-panel {
+            background: var(--card);
+            border-radius: 24px;
+            padding: 20px 28px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+        }
+
+        .search-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .search-title i {
+            font-size: 28px;
+            color: var(--primary);
+        }
+
+        .barcode-search {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            align-items: flex-end;
+        }
+
+        .input-group {
+            flex: 2;
+            min-width: 250px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--muted);
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            transition: 0.2s;
+        }
+
+        .input-group input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
+        }
+
+        /* Tabla tipo supermercado */
+        .table-container {
+            background: var(--card);
+            border-radius: 24px;
+            overflow-x: auto;
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+        }
+
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+
+        .product-table th {
+            background: var(--table-header);
+            padding: 16px 12px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border-bottom: 2px solid var(--border);
+        }
+
+        .product-table td {
+            padding: 14px 12px;
+            border-bottom: 1px solid var(--border);
+            vertical-align: middle;
+        }
+
+        .product-table tr:hover {
+            background: rgba(var(--primary), 0.05);
+        }
+
+        .stock-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.75rem;
+        }
+
+        .stock-high {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+
+        .stock-medium {
+            background: #fff3e0;
+            color: #ef6c00;
+        }
+
+        .stock-low {
+            background: #ffebee;
+            color: #c62828;
+        }
+
+        .actions-cell {
+            display: flex;
+            gap: 8px;
+        }
+
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 6px;
+            border-radius: 8px;
+            transition: 0.2s;
+            color: var(--muted);
+        }
+
+        .icon-btn:hover {
+            background: var(--bg);
+            color: var(--primary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: var(--card);
+            border-radius: 32px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px;
+            position: relative;
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .full-width {
+            grid-column: span 2;
+        }
+
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .full-width { grid-column: span 1; }
+            body { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header-bar">
+        <div class="logo">
+            <h1><i class="fas fa-barcode"></i>Mini Super M&H</h1>
+            <p>Gestión de inventario</p>
+        </div>
+        <div class="header-actions">
+            <button class="btn" id="modoOscuroBtn"><i class="fas fa-moon"></i> Modo</button>
+            <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+        </div>
+    </div>
+
+    <!-- Buscador por código de barras -->
+    <div class="search-panel">
+        <div class="search-title">
+            <i class="fas fa-qrcode"></i>
+            <h2>Buscar por código de barras</h2>
+        </div>
+        <div class="barcode-search">
+            <div class="input-group">
+                <label><i class="fas fa-barcode"></i> Código de barras</label>
+                <input type="text" id="barcodeInput" placeholder="Escanea o escribe el código... ej: 7501000012345" autocomplete="off">
+            </div>
+            <button class="btn" id="buscarBarcodeBtn"><i class="fas fa-search"></i> Buscar producto</button>
+            <button class="btn btn-outline" id="limpiarBusqueda"><i class="fas fa-eraser"></i> Mostrar todos</button>
+        </div>
+        <div id="resultadoBusqueda" style="margin-top: 16px; font-weight: 500;"></div>
+    </div>
+
+    <!-- Tabla de productos -->
+    <div class="table-container">
+        <table class="product-table" id="productTable">
+            <thead>
+                <tr>
+                    <th>Código Barras</th><th>Producto</th><th>Categoría</th><th>Precio</th><th>Stock</th><th>Stock Mín.</th><th>Ubicación</th><th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="8" style="text-align:center">Cargando productos...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Botón flotante nuevo producto -->
+    <div style="text-align: right; margin-top: 8px;">
+        <button class="btn" id="nuevoProductoBtn" style="background: var(--success);"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
+    </div>
+</div>
+
+<!-- Modal para crear/editar producto -->
+<div id="productModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 id="modalTitle"><i class="fas fa-boxes"></i> Nuevo Producto</h3>
+            <button class="icon-btn" id="closeModalBtn">&times;</button>
+        </div>
+        <form id="productForm">
+            <input type="hidden" id="productId">
+            <div class="form-grid">
+                <div class="input-group full-width"><label>Código de barras *</label><input type="text" id="codigo_barras" required placeholder="Código único"></div>
+                <div class="input-group"><label>Nombre *</label><input type="text" id="nombre" required></div>
+                <div class="input-group"><label>Categoría *</label><select id="categoria" required><option value="">Seleccionar</option></select></div>
+                <div class="input-group"><label>Precio (MXN)</label><input type="number" step="0.01" id="precio" required></div>
+                <div class="input-group"><label>Stock</label><input type="number" id="stock" value="0"></div>
+                <div class="input-group"><label>Stock mínimo</label><input type="number" id="stock_minimo" value="5"></div>
+                <div class="input-group"><label>Unidad medida</label><input type="text" id="unidad_medida" placeholder="kg, litro, pieza"></div>
+                <div class="input-group"><label>Proveedor</label><input type="text" id="proveedor"></div>
+                <div class="input-group"><label>Ubicación</label><input type="text" id="ubicacion" placeholder="Estante A1"></div>
+                <div class="input-group full-width"><label>Descripción</label><textarea id="descripcion" rows="2"></textarea></div>
+            </div>
+            <div style="display: flex; gap: 12px; margin-top: 24px; justify-content: flex-end;">
+                <button type="button" class="btn-outline" id="cancelModalBtn">Cancelar</button>
+                <button type="submit" class="btn">Guardar producto</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Configuración API
+    const API_URL = 'http://localhost:3000/api';
+    let productos = [];
+
+    // Elementos DOM
+    const tableBody = document.getElementById('tableBody');
+    const barcodeInput = document.getElementById('barcodeInput');
+    const buscarBtn = document.getElementById('buscarBarcodeBtn');
+    const limpiarBtn = document.getElementById('limpiarBusqueda');
+    const nuevoBtn = document.getElementById('nuevoProductoBtn');
+    const modal = document.getElementById('productModal');
+    const closeModal = document.getElementById('closeModalBtn');
+    const cancelModal = document.getElementById('cancelModalBtn');
+    const productForm = document.getElementById('productForm');
+    const modalTitle = document.getElementById('modalTitle');
+    const volverDashboard = document.getElementById('volverDashboard');
+
+    // Helper: obtener stock badge
+    function getStockBadge(stock, minStock) {
+        if (stock <= 0) return '<span class="stock-badge stock-low"><i class="fas fa-exclamation-triangle"></i> Sin stock</span>';
+        if (stock <= minStock) return '<span class="stock-badge stock-low"><i class="fas fa-bell"></i> Bajo</span>';
+        if (stock <= minStock * 2) return '<span class="stock-badge stock-medium">Medio</span>';
+        return '<span class="stock-badge stock-high">Óptimo</span>';
+    }
+
+    // Renderizar tabla
+    function renderTabla(productosArray) {
+        if (!productosArray.length) {
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">📭 No hay productos registrados</td></tr>';
+            return;
+        }
+        tableBody.innerHTML = productosArray.map(p => `
+            <tr>
+                <td><code>${escapeHtml(p.codigo_barras || '—')}</code></td>
+                <td><strong>${escapeHtml(p.nombre)}</strong><br><small class="muted">${escapeHtml(p.descripcion?.substring(0,40) || '')}</small></td>
+                <td>${escapeHtml(p.categoria)}</td>
+                <td>$${Number(p.precio).toFixed(2)}</td>
+                <td>${Number(p.stock)} ${getStockBadge(Number(p.stock), Number(p.stock_minimo))}</td>
+                <td>${Number(p.stock_minimo)}</td>
+                <td><i class="fas fa-map-marker-alt"></i> ${escapeHtml(p.ubicacion || 'N/A')}</td>
+                <td class="actions-cell">
+                    <button class="icon-btn" onclick="editarProducto(${p.id})" title="Editar"><i class="fas fa-edit"></i></button>
+                    <button class="icon-btn" onclick="eliminarProducto(${p.id}, '${escapeHtml(p.nombre)}')" title="Eliminar" style="color:var(--danger)"><i class="fas fa-trash-alt"></i></button>
+                </td>
+            </tr>
+        `).join('');
+    }
+
+    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+
+    // Cargar productos desde API
+    async function cargarProductos() {
+        try {
+            const res = await fetch(`${API_URL}/products`);
+            const data = await res.json();
+            if (data.ok) {
+                productos = data.data;
+                renderTabla(productos);
+            } else throw new Error('Error al cargar');
+        } catch (error) {
+            console.error(error);
+            tableBody.innerHTML = '<tr><td colspan="8" style="text-align:center">⚠️ Error conectando al servidor. Asegura el backend.</td></tr>';
+        }
+    }
+
+    // Buscar por código de barras
+    async function buscarPorCodigo(codigo) {
+        if (!codigo.trim()) { cargarProductos(); return; }
+        try {
+            const res = await fetch(`${API_URL}/products/barcode/${encodeURIComponent(codigo)}`);
+            const data = await res.json();
+            if (data.ok && data.data) {
+                renderTabla([data.data]);
+                document.getElementById('resultadoBusqueda').innerHTML = `<span style="color:var(--success)">✅ Producto encontrado: ${data.data.nombre}</span>`;
+            } else {
+                renderTabla([]);
+                document.getElementById('resultadoBusqueda').innerHTML = `<span style="color:var(--danger)">❌ No se encontró producto con código: ${codigo}</span>`;
+            }
+        } catch (error) {
+            alert('Error en búsqueda');
+        }
+    }
+
+    // Limpiar búsqueda
+    function limpiarBusqueda() {
+        barcodeInput.value = '';
+        document.getElementById('resultadoBusqueda').innerHTML = '';
+        cargarProductos();
+    }
+
+    // Abrir modal para nuevo producto
+    function abrirModalNuevo() {
+        modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto';
+        productForm.reset();
+        document.getElementById('productId').value = '';
+        modal.style.display = 'flex';
+    }
+
+    // Editar producto
+    window.editarProducto = async (id) => {
+        const producto = productos.find(p => p.id === id);
+        if (!producto) return;
+        modalTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Producto';
+        document.getElementById('productId').value = producto.id;
+        document.getElementById('codigo_barras').value = producto.codigo_barras || '';
+        document.getElementById('nombre').value = producto.nombre;
+        document.getElementById('categoria').value = producto.categoria;
+        document.getElementById('precio').value = producto.precio;
+        document.getElementById('stock').value = producto.stock;
+        document.getElementById('stock_minimo').value = producto.stock_minimo;
+        document.getElementById('unidad_medida').value = producto.unidad_medida || '';
+        document.getElementById('proveedor').value = producto.proveedor || '';
+        document.getElementById('ubicacion').value = producto.ubicacion || '';
+        document.getElementById('descripcion').value = producto.descripcion || '';
+        modal.style.display = 'flex';
+    };
+
+    // Eliminar producto
+    window.eliminarProducto = async (id, nombre) => {
+        if (!confirm(`¿Eliminar permanentemente "${nombre}"?`)) return;
+        try {
+            const res = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.ok) {
+                cargarProductos();
+                alert('Producto eliminado');
+            } else throw new Error();
+        } catch (error) {
+            alert('Error al eliminar');
+        }
+    };
+
+    // Guardar producto (crear/editar)
+    productForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const id = document.getElementById('productId').value;
+        const payload = {
+            codigo_barras: document.getElementById('codigo_barras').value,
+            nombre: document.getElementById('nombre').value,
+            categoria: document.getElementById('categoria').value,
+            precio: parseFloat(document.getElementById('precio').value),
+            stock: parseInt(document.getElementById('stock').value),
+            stock_minimo: parseInt(document.getElementById('stock_minimo').value),
+            unidad_medida: document.getElementById('unidad_medida').value,
+            proveedor: document.getElementById('proveedor').value,
+            ubicacion: document.getElementById('ubicacion').value,
+            descripcion: document.getElementById('descripcion').value,
+        };
+        if (!payload.codigo_barras || !payload.nombre || !payload.categoria) {
+            alert('Código de barras, nombre y categoría son obligatorios');
+            return;
+        }
+        try {
+            let res;
+            if (id) {
+                res = await fetch(`${API_URL}/products/${id}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            } else {
+                res = await fetch(`${API_URL}/products`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+            }
+            const data = await res.json();
+            if (data.ok) {
+                modal.style.display = 'none';
+                cargarProductos();
+                alert(id ? 'Producto actualizado' : 'Producto creado');
+            } else throw new Error(data.error);
+        } catch (error) {
+            alert('Error guardando producto: ' + error.message);
+        }
+    });
+
+    // Cargar categorías en select
+    async function cargarCategorias() {
+        try {
+            const res = await fetch(`${API_URL}/categories`);
+            const data = await res.json();
+            if (data.ok && data.data.length) {
+                const select = document.getElementById('categoria');
+                select.innerHTML = '<option value="">Seleccionar</option>' + data.data.map(cat => `<option value="${cat.nombre}">${cat.nombre}</option>`).join('');
+            } else {
+                // categorías por defecto
+                const cats = ['Lácteos','Carnes','Verduras','Frutas','Abarrotes','Bebidas','Limpieza','Higiene Personal','Panadería','Congelados'];
+                const select = document.getElementById('categoria');
+                select.innerHTML = '<option value="">Seleccionar</option>' + cats.map(c => `<option value="${c}">${c}</option>`).join('');
+            }
+        } catch (e) {
+            console.warn('No se pudieron cargar categorías desde API');
+        }
+    }
+
+    // Eventos
+    buscarBtn.addEventListener('click', () => buscarPorCodigo(barcodeInput.value));
+    limpiarBtn.addEventListener('click', limpiarBusqueda);
+    nuevoBtn.addEventListener('click', abrirModalNuevo);
+    function cerrarModal() { modal.style.display = 'none'; }
+    closeModal.addEventListener('click', cerrarModal);
+    cancelModal.addEventListener('click', cerrarModal);
+    window.addEventListener('click', (e) => { if (e.target === modal) cerrarModal(); });
+    volverDashboard.addEventListener('click', () => { window.location.href = 'dashboard.html'; });
+
+    // Modo oscuro
+    const modoBtn = document.getElementById('modoOscuroBtn');
+    function toggleModo() {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('modoSupermercado', document.body.classList.contains('dark'));
+        modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro';
+    }
+    if (localStorage.getItem('modoSupermercado') === 'true') document.body.classList.add('dark');
+    modoBtn.addEventListener('click', toggleModo);
+
+    // Inicializar
+    cargarCategorias();
+    cargarProductos();
+
+    // Soporte para escáner (enter simula búsqueda)
+    barcodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarPorCodigo(barcodeInput.value); });
+</script>
+</body>
+</html>
