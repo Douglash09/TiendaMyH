@@ -52,7 +52,6 @@
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .alert-banner { background: linear-gradient(135deg, #ff6b6b, #c92a2a); color: white; padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; cursor: pointer; }
         
-        /* Panel de filtros colapsable */
         .filters-panel {
             background: var(--card);
             border-radius: 24px;
@@ -71,75 +70,20 @@
             border-bottom: 1px solid var(--border);
             transition: background 0.2s;
         }
-        .filters-header:hover {
-            background: var(--table-header);
-        }
-        .filters-header h3 {
-            font-size: 1rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .filters-header .toggle-icon {
-            transition: transform 0.3s ease;
-            font-size: 1.1rem;
-        }
-        .filters-header .toggle-icon.rotated {
-            transform: rotate(180deg);
-        }
-        .filters-content {
-            padding: 20px 24px;
-            transition: all 0.3s ease;
-        }
-        .filters-content.collapsed {
-            display: none;
-        }
-        .filters-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            margin-bottom: 20px;
-        }
-        .filter-group {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-        .filter-group label {
-            font-size: 0.75rem;
-            font-weight: 600;
-            color: var(--muted);
-        }
-        .filter-group select, .filter-group input {
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Poppins', sans-serif;
-        }
-        .price-range {
-            display: flex;
-            gap: 8px;
-        }
-        .price-range input {
-            flex: 1;
-        }
-        .filter-actions {
-            display: flex;
-            gap: 12px;
-            justify-content: flex-end;
-            margin-top: 10px;
-        }
-        .filters-stats {
-            font-size: 0.75rem;
-            color: var(--muted);
-            padding: 8px 12px;
-            background: var(--bg);
-            border-radius: 12px;
-            margin-top: 10px;
-        }
+        .filters-header:hover { background: var(--table-header); }
+        .filters-header h3 { font-size: 1rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        .filters-header .toggle-icon { transition: transform 0.3s ease; font-size: 1.1rem; }
+        .filters-header .toggle-icon.rotated { transform: rotate(180deg); }
+        .filters-content { padding: 20px 24px; transition: all 0.3s ease; }
+        .filters-content.collapsed { display: none; }
+        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 20px; }
+        .filter-group { display: flex; flex-direction: column; gap: 6px; }
+        .filter-group label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
+        .filter-group select, .filter-group input { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; }
+        .price-range { display: flex; gap: 8px; }
+        .price-range input { flex: 1; }
+        .filter-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px; }
+        .filters-stats { font-size: 0.75rem; color: var(--muted); padding: 8px 12px; background: var(--bg); border-radius: 12px; margin-top: 10px; }
         
         .search-panel {
             background: var(--card);
@@ -148,45 +92,13 @@
             margin-bottom: 28px;
             box-shadow: var(--shadow);
         }
-        .search-title {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 20px;
-        }
-        .barcode-search {
-            display: flex;
-            gap: 12px;
-            flex-wrap: wrap;
-            align-items: flex-end;
-        }
-        .input-group {
-            flex: 2;
-            min-width: 200px;
-        }
-        .input-group label {
-            display: block;
-            font-size: 0.75rem;
-            font-weight: 600;
-            margin-bottom: 6px;
-            color: var(--muted);
-        }
+        .search-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .barcode-search { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .input-group { flex: 2; min-width: 200px; }
+        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
         .input-group label .required { color: var(--danger); }
-        .input-group input, .input-group select, .input-group textarea {
-            width: 100%;
-            padding: 12px 16px;
-            border-radius: 16px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Poppins', sans-serif;
-            transition: 0.2s;
-        }
-        .input-group input:focus, .input-group select:focus {
-            outline: none;
-            border-color: var(--primary);
-            box-shadow: 0 0 0 3px rgba(44,125,160,0.2);
-        }
+        .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; transition: 0.2s; }
+        .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(44,125,160,0.2); }
         .error-message { color: var(--danger); font-size: 0.7rem; margin-top: 4px; display: none; }
         .table-container { background: var(--card); border-radius: 24px; overflow-x: auto; box-shadow: var(--shadow); margin-bottom: 28px; }
         .product-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1200px; }
@@ -238,6 +150,8 @@
         .resumen-producto-base { background: var(--primary); color: white; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; }
         .resumen-producto-base i { margin-right: 8px; }
         .button-group-step3 { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
+        .precio-row { display: flex; gap: 12px; }
+        .precio-row .input-group { flex: 1; }
     </style>
 </head>
 <body>
@@ -258,7 +172,6 @@
         <i class="fas fa-times" onclick="event.stopPropagation(); this.parentElement.style.display='none'"></i>
     </div>
 
-    <!-- PANEL DE FILTROS COLAPSABLE -->
     <div class="filters-panel">
         <div class="filters-header" id="filtersHeader">
             <h3><i class="fas fa-filter"></i> Filtros avanzados</h3>
@@ -266,59 +179,14 @@
         </div>
         <div class="filters-content" id="filtersContent">
             <div class="filters-grid">
-                <div class="filter-group">
-                    <label><i class="fas fa-tag"></i> Categoría</label>
-                    <select id="filtroCategoria">
-                        <option value="">Todas las categorías</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-box"></i> Formato de venta</label>
-                    <select id="filtroFormato">
-                        <option value="">Todos los formatos</option>
-                        <option value="Unidad">Unidad</option>
-                        <option value="Paquete">Paquete</option>
-                        <option value="Fardo">Fardo</option>
-                        <option value="Caja">Caja</option>
-                        <option value="Docena">Docena</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-chart-line"></i> Estado de stock</label>
-                    <select id="filtroStock">
-                        <option value="">Todos</option>
-                        <option value="bajo">Stock bajo (≤ mínimo)</option>
-                        <option value="sin">Sin stock (=0)</option>
-                        <option value="optimo">Stock óptimo (> mínimo)</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-calendar-alt"></i> Estado de vencimiento</label>
-                    <select id="filtroVencimiento">
-                        <option value="">Todos</option>
-                        <option value="proximo">Próximos a vencer (≤7 días)</option>
-                        <option value="vencido">Vencidos</option>
-                        <option value="vigente">Vigentes (>7 días)</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-building"></i> Proveedor</label>
-                    <select id="filtroProveedor">
-                        <option value="">Todos los proveedores</option>
-                    </select>
-                </div>
-                <div class="filter-group">
-                    <label><i class="fas fa-dollar-sign"></i> Rango de precio (USD)</label>
-                    <div class="price-range">
-                        <input type="number" id="filtroPrecioMin" placeholder="Mín" step="0.01" min="0">
-                        <input type="number" id="filtroPrecioMax" placeholder="Máx" step="0.01" min="0">
-                    </div>
-                </div>
+                <div class="filter-group"><label><i class="fas fa-tag"></i> Categoría</label><select id="filtroCategoria"><option value="">Todas las categorías</option></select></div>
+                <div class="filter-group"><label><i class="fas fa-box"></i> Formato de venta</label><select id="filtroFormato"><option value="">Todos los formatos</option><option value="Unidad">Unidad</option><option value="Paquete">Paquete</option><option value="Fardo">Fardo</option><option value="Caja">Caja</option><option value="Docena">Docena</option></select></div>
+                <div class="filter-group"><label><i class="fas fa-chart-line"></i> Estado de stock</label><select id="filtroStock"><option value="">Todos</option><option value="bajo">Stock bajo (≤ mínimo)</option><option value="sin">Sin stock (=0)</option><option value="optimo">Stock óptimo (> mínimo)</option></select></div>
+                <div class="filter-group"><label><i class="fas fa-calendar-alt"></i> Estado de vencimiento</label><select id="filtroVencimiento"><option value="">Todos</option><option value="proximo">Próximos a vencer (≤7 días)</option><option value="vencido">Vencidos</option><option value="vigente">Vigentes (>7 días)</option></select></div>
+                <div class="filter-group"><label><i class="fas fa-building"></i> Proveedor</label><select id="filtroProveedor"><option value="">Todos los proveedores</option></select></div>
+                <div class="filter-group"><label><i class="fas fa-dollar-sign"></i> Rango de precio (USD)</label><div class="price-range"><input type="number" id="filtroPrecioMin" placeholder="Mín" step="0.01" min="0"><input type="number" id="filtroPrecioMax" placeholder="Máx" step="0.01" min="0"></div></div>
             </div>
-            <div class="filter-actions">
-                <button class="btn" id="aplicarFiltrosBtn"><i class="fas fa-search"></i> Aplicar filtros</button>
-                <button class="btn-outline" id="limpiarFiltrosBtn"><i class="fas fa-eraser"></i> Limpiar filtros</button>
-            </div>
+            <div class="filter-actions"><button class="btn" id="aplicarFiltrosBtn"><i class="fas fa-search"></i> Aplicar filtros</button><button class="btn-outline" id="limpiarFiltrosBtn"><i class="fas fa-eraser"></i> Limpiar filtros</button></div>
             <div id="filtrosStats" class="filters-stats"></div>
         </div>
     </div>
@@ -336,7 +204,7 @@
     <div class="table-container">
         <table class="product-table">
             <thead><tr><th>Código Barras</th><th>Producto</th><th>Categoría</th><th>Precio Venta</th><th>Precio Compra</th><th>Stock</th><th>Stock Mín.</th><th>Ubicación</th><th>Fecha Venc.</th><th>Lote</th><th>Acciones</th></tr></thead>
-            <tbody id="tableBody"><td><td colspan="11" style="text-align:center">Cargando productos......</td></tr></tbody>
+            <tbody id="tableBody"><tr><td colspan="11" style="text-align:center">Cargando productos......</td></tr></tbody>
         </table>
     </div>
 
@@ -365,7 +233,7 @@
                     <div class="input-group"><label>Proveedor</label><input type="text" id="proveedor" placeholder="Nombre del proveedor"></div>
                     <div class="input-group"><label>Formato de Venta</label><select id="formato_venta"><option value="Unidad">Unidad</option><option value="Paquete">Paquete</option><option value="Fardo">Fardo</option><option value="Caja">Caja</option><option value="Docena">Docena</option></select></div>
                     <div class="input-group"><label><span class="required">*</span> Cantidad por Formato</label><input type="number" id="cantidad_formato" value="1" min="1"><div class="error-message" id="error_cantidad_formato">Debe ser al menos 1</div></div>
-                    <div class="input-group"><label>Unidad medida</label><input type="text" id="unidad_medida" placeholder="kg, litro, pieza"></div>
+                    <div class="input-group"><label>Unidad medida</label><select id="unidad_medida"><option value="">Seleccionar unidad</option><option value="pieza">Pieza (unidad)</option><option value="kilogramo">Kilogramo (kg)</option><option value="gramo">Gramo (g)</option><option value="litro">Litro (L)</option><option value="mililitro">Mililitro (ml)</option><option value="metro">Metro (m)</option><option value="centimetro">Centímetro (cm)</option><option value="caja">Caja</option><option value="paquete">Paquete</option><option value="docena">Docena</option><option value="fardo">Fardo</option></select></div>
                     <div class="input-group"><label>Ubicación</label><input type="text" id="ubicacion" placeholder="Pasillo-Estante"></div>
                     <div class="input-group full-width"><label>Descripción</label><textarea id="descripcion" rows="2"></textarea></div>
                 </div>
@@ -400,7 +268,7 @@
     </div>
 </div>
 
-<!-- MODAL AGREGAR LOTE -->
+<!-- MODAL AGREGAR LOTE - NUEVO PRODUCTO -->
 <div id="agregarLoteModal" class="modal">
     <div class="modal-content">
         <div class="modal-header"><h3><i class="fas fa-plus-circle"></i> Agregar Lote - Nuevo Producto</h3><button class="icon-btn" id="closeAgregarLoteModalBtn">&times;</button></div>
@@ -409,9 +277,16 @@
             <input type="hidden" id="nuevoProductoBaseId">
             <div class="form-grid">
                 <div class="input-group full-width"><label><span class="required">*</span> Número de lote</label><input type="text" id="nuevoLoteNumero" placeholder="Ej: LOTE-001" required><div class="error-message" id="error_nuevo_lote_numero">El número de lote es obligatorio</div></div>
-                <div class="input-group"><label><span class="required">*</span> Cantidad</label><input type="number" id="nuevoLoteCantidad" required min="1"><div class="error-message" id="error_nuevo_lote_cantidad">La cantidad debe ser al menos 1</div></div>
+                <div class="input-group"><label><span class="required">*</span> Cantidad (Stock inicial)</label><input type="number" id="nuevoLoteCantidad" required min="1"><div class="error-message" id="error_nuevo_lote_cantidad">La cantidad debe ser al menos 1</div><small>Esta cantidad será el stock inicial del nuevo producto</small></div>
                 <div class="input-group"><label>Fecha vencimiento</label><input type="date" id="nuevoLoteFechaVencimiento"></div>
-                <div class="input-group"><label>Precio compra (USD)</label><input type="number" step="0.01" id="nuevoLotePrecioCompra" min="0"></div>
+                <div class="input-group full-width">
+                    <label><i class="fas fa-tags"></i> Precios personalizados</label>
+                    <div class="precio-row">
+                        <div class="input-group"><label>Precio de Compra (USD)</label><input type="number" step="0.01" id="nuevoLotePrecioCompra" min="0" placeholder="Dejar vacío = original"></div>
+                        <div class="input-group"><label>Precio de Venta (USD)</label><input type="number" step="0.01" id="nuevoLotePrecioVenta" min="0" placeholder="Dejar vacío = original"></div>
+                    </div>
+                    <small>Si dejas vacío, se usará el precio del producto original</small>
+                </div>
             </div>
             <div class="flex-buttons"><button type="button" class="btn-outline" id="cancelAgregarLoteBtn">Cancelar</button><button type="submit" class="btn btn-success"><i class="fas fa-save"></i> Crear Producto y Registrar Lote</button></div>
         </form>
@@ -436,10 +311,24 @@
 </div>
 
 <!-- MODAL NUEVA CATEGORÍA -->
-<div id="categoriaModal" class="modal"><div class="modal-content" style="max-width:400px"><div class="modal-header"><h3>Nueva Categoría</h3><button class="icon-btn" id="closeCategoriaModalBtn">&times;</button></div><form id="categoriaForm"><div class="input-group"><label><span class="required">*</span> Nombre categoría</label><input type="text" id="nuevaCategoriaNombre" required><div class="error-message" id="error_categoria_nombre">El nombre es obligatorio</div></div><div class="flex-buttons"><button type="button" class="btn-outline" id="cancelCategoriaBtn">Cancelar</button><button type="submit" class="btn">Crear</button></div></form></div></div>
+<div id="categoriaModal" class="modal">
+    <div class="modal-content" style="max-width:400px">
+        <div class="modal-header"><h3>Nueva Categoría</h3><button class="icon-btn" id="closeCategoriaModalBtn">&times;</button></div>
+        <form id="categoriaForm">
+            <div class="input-group"><label><span class="required">*</span> Nombre categoría</label><input type="text" id="nuevaCategoriaNombre" required><div class="error-message" id="error_categoria_nombre">El nombre es obligatorio</div></div>
+            <div class="flex-buttons"><button type="button" class="btn-outline" id="cancelCategoriaBtn">Cancelar</button><button type="submit" class="btn">Crear</button></div>
+        </form>
+    </div>
+</div>
 
 <!-- MODAL DETALLES -->
-<div id="detallesModal" class="modal"><div class="modal-content"><div class="modal-header"><h3><i class="fas fa-info-circle"></i> Detalles completos</h3><button class="icon-btn" id="closeDetallesModalBtn">&times;</button></div><div id="detallesContent"></div><div class="flex-buttons"><button class="btn" id="cerrarDetallesBtn">Cerrar</button></div></div></div>
+<div id="detallesModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header"><h3><i class="fas fa-info-circle"></i> Detalles completos</h3><button class="icon-btn" id="closeDetallesModalBtn">&times;</button></div>
+        <div id="detallesContent"></div>
+        <div class="flex-buttons"><button class="btn" id="cerrarDetallesBtn">Cerrar</button></div>
+    </div>
+</div>
 
 <script>
     const API_URL = 'http://localhost:3000/api';
@@ -475,14 +364,11 @@
     const filtersHeader = document.getElementById('filtersHeader');
     const filtersContent = document.getElementById('filtersContent');
     const toggleFiltersIcon = document.getElementById('toggleFiltersIcon');
-    
-    // Estado del colapso (guardar en localStorage)
     let filtersCollapsed = localStorage.getItem('filtersCollapsed') === 'true';
     
     function toggleFilters() {
         filtersCollapsed = !filtersCollapsed;
         localStorage.setItem('filtersCollapsed', filtersCollapsed);
-        
         if (filtersCollapsed) {
             filtersContent.classList.add('collapsed');
             toggleFiltersIcon.classList.add('rotated');
@@ -534,14 +420,12 @@
     function showStep(step) {
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.getElementById(`step${step}`).classList.add('active');
-        
         steps.forEach((stepEl, index) => {
             const stepNum = index + 1;
             if (stepNum < step) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); }
             else if (stepNum === step) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); }
             else { stepEl.classList.remove('active', 'completed'); }
         });
-        
         if (step === 3) {
             navButtonsStep1y2.style.display = 'none';
             step3Buttons.style.display = 'flex';
@@ -560,16 +444,12 @@
         const nombre = document.getElementById('nombre');
         const categoria = document.getElementById('categoria');
         const cantidadFormato = document.getElementById('cantidad_formato');
-        
         if (!codigoBarras.value.trim()) { codigoBarras.classList.add('error'); document.getElementById('error_codigo_barras').style.display = 'block'; isValid = false; }
         else { codigoBarras.classList.remove('error'); document.getElementById('error_codigo_barras').style.display = 'none'; }
-        
         if (!nombre.value.trim()) { nombre.classList.add('error'); document.getElementById('error_nombre').style.display = 'block'; isValid = false; }
         else { nombre.classList.remove('error'); document.getElementById('error_nombre').style.display = 'none'; }
-        
         if (!categoria.value) { categoria.classList.add('error'); document.getElementById('error_categoria').style.display = 'block'; isValid = false; }
         else { categoria.classList.remove('error'); document.getElementById('error_categoria').style.display = 'none'; }
-        
         const cantFormato = parseInt(cantidadFormato.value);
         if (isNaN(cantFormato) || cantFormato < 1) { cantidadFormato.classList.add('error'); document.getElementById('error_cantidad_formato').style.display = 'block'; isValid = false; }
         else { cantidadFormato.classList.remove('error'); document.getElementById('error_cantidad_formato').style.display = 'none'; }
@@ -581,15 +461,12 @@
         const precioCompra = document.getElementById('precio_compra');
         const precioVenta = document.getElementById('precio_venta');
         const stockMinimo = document.getElementById('stock_minimo');
-        
         const pCompra = parseFloat(precioCompra.value);
         if (isNaN(pCompra) || pCompra < 0) { precioCompra.classList.add('error'); document.getElementById('error_precio_compra').style.display = 'block'; isValid = false; }
         else { precioCompra.classList.remove('error'); document.getElementById('error_precio_compra').style.display = 'none'; }
-        
         const pVenta = parseFloat(precioVenta.value);
         if (isNaN(pVenta) || pVenta < 0) { precioVenta.classList.add('error'); document.getElementById('error_precio_venta').style.display = 'block'; isValid = false; }
         else { precioVenta.classList.remove('error'); document.getElementById('error_precio_venta').style.display = 'none'; }
-        
         const sMinimo = parseInt(stockMinimo.value);
         if (isNaN(sMinimo) || sMinimo < 0) { stockMinimo.classList.add('error'); document.getElementById('error_stock_minimo').style.display = 'block'; isValid = false; }
         else { stockMinimo.classList.remove('error'); document.getElementById('error_stock_minimo').style.display = 'none'; }
@@ -620,8 +497,7 @@
 
     function getExpiryStatus(fechaVencimiento) {
         if (!fechaVencimiento) return { text: '<span class="expiry-badge">—</span>', status: 'ninguno', days: null };
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        const today = new Date(); today.setHours(0, 0, 0, 0);
         const expiryDate = new Date(fechaVencimiento);
         const days = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
         if (days < 0) return { text: '<span class="expiry-badge expired">VENCIDO</span>', status: 'vencido', days: days };
@@ -648,33 +524,19 @@
     function aplicarFiltros() {
         let filtrados = [...productos];
         const textoBusqueda = barcodeInput.value.trim().toLowerCase();
-        
-        if (textoBusqueda) {
-            filtrados = filtrados.filter(p => 
-                p.codigo_barras?.toLowerCase().includes(textoBusqueda) || 
-                p.nombre?.toLowerCase().includes(textoBusqueda)
-            );
-        }
-        
+        if (textoBusqueda) filtrados = filtrados.filter(p => p.codigo_barras?.toLowerCase().includes(textoBusqueda) || p.nombre?.toLowerCase().includes(textoBusqueda));
         const cat = filtroCategoria.value;
         if (cat) filtrados = filtrados.filter(p => p.categoria === cat);
-        
         const fmt = filtroFormato.value;
         if (fmt) filtrados = filtrados.filter(p => p.formato_venta === fmt);
-        
         const prov = filtroProveedor.value;
         if (prov) filtrados = filtrados.filter(p => p.proveedor === prov);
-        
         const precioMin = parseFloat(filtroPrecioMin.value);
         const precioMax = parseFloat(filtroPrecioMax.value);
         if (!isNaN(precioMin)) filtrados = filtrados.filter(p => p.precio_venta >= precioMin);
         if (!isNaN(precioMax)) filtrados = filtrados.filter(p => p.precio_venta <= precioMax);
-        
         const stockFiltro = filtroStock.value;
-        if (stockFiltro) {
-            filtrados = filtrados.filter(p => getStockStatus(p.stock, p.stock_minimo) === stockFiltro);
-        }
-        
+        if (stockFiltro) filtrados = filtrados.filter(p => getStockStatus(p.stock, p.stock_minimo) === stockFiltro);
         const vencFiltro = filtroVencimiento.value;
         if (vencFiltro) {
             filtrados = filtrados.filter(p => {
@@ -685,7 +547,6 @@
                 return status === vencFiltro;
             });
         }
-        
         productosFiltrados = filtrados;
         renderTabla(productosFiltrados);
         filtrosStats.innerHTML = `📊 Mostrando ${filtrados.length} de ${productos.length} productos`;
@@ -707,22 +568,18 @@
     }
 
     async function renderTabla(productosArray) {
-        if (!productosArray.length) { tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center">📭 No hay productos registrados</td></table>'; return; }
-        
+        if (!productosArray.length) { tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center">📭 No hay productos registrados</td></tr>'; return; }
         tableBody.innerHTML = productosArray.map(p => {
             const lotes = lotesPorProducto[p.id] || [];
             let fechaVencimientoProducto = null;
             let loteHtml = '<div class="batch-info">Sin lotes</div>';
-            
             if (lotes.length > 0) {
                 const lotePrincipal = lotes[0];
                 fechaVencimientoProducto = lotePrincipal.fecha_vencimiento;
                 const fechaVenc = lotePrincipal.fecha_vencimiento ? new Date(lotePrincipal.fecha_vencimiento).toLocaleDateString() : 'Sin fecha';
                 loteHtml = `<div class="batch-info" onclick="abrirEditarLote(${lotePrincipal.id}, ${p.id})" title="Haz clic para editar este lote"><span class="badge-lote">${escapeHtml(lotePrincipal.numero_lote || 'N/L')}</span><br>${lotePrincipal.cantidad} uds | ${fechaVenc}</div>`;
             }
-            
             const expiryStatus = getExpiryStatus(fechaVencimientoProducto).text;
-            
             return `<tr>
                 <td><code>${escapeHtml(p.codigo_barras || '—')}</code></td>
                 <td><strong>${escapeHtml(p.nombre)}</strong><br><small>${escapeHtml(p.formato_venta || 'Unidad')} x${p.cantidad_formato || 1}</small></td>
@@ -769,9 +626,7 @@
         const producto = productos.find(p => p.id === id);
         if (!producto) return;
         const lotes = lotesPorProducto[id] || [];
-        
         const lotesHtml = lotes.length ? lotes.map(l => `<div class="batch-item"><div class="batch-info-text"><strong>Lote:</strong> ${l.numero_lote || 'N/A'}<br><strong>Cantidad:</strong> ${l.cantidad}<br><strong>Precio compra:</strong> $${l.precio_compra}<br><strong>Vence:</strong> ${l.fecha_vencimiento ? new Date(l.fecha_vencimiento).toLocaleDateString() : 'N/A'}<br><strong>Entrada:</strong> ${new Date(l.fecha_entrada).toLocaleDateString()}</div></div>`).join('') : '<p>No hay lotes registrados</p>';
-        
         document.getElementById('detallesContent').innerHTML = `
             <div class="details-grid">
                 <div class="detail-card"><div class="detail-label">Código Barras</div><div class="detail-value">${escapeHtml(producto.codigo_barras || '—')}</div></div>
@@ -797,7 +652,6 @@
         const lotes = lotesPorProducto[productoId] || [];
         const lote = lotes.find(l => l.id === loteId);
         if (!lote) return;
-        
         loteModalTitle.innerHTML = '<i class="fas fa-edit"></i> Editar Lote';
         document.getElementById('loteId').value = lote.id;
         document.getElementById('loteProductoId').value = productoId;
@@ -818,7 +672,6 @@
     window.abrirAgregarLoteDesdeTabla = async (productoId) => {
         const productoOriginal = productos.find(p => p.id === productoId);
         if (!productoOriginal) return;
-        
         const resumenHtml = `<i class="fas fa-info-circle"></i> <strong>Producto base:</strong><br>📦 ${escapeHtml(productoOriginal.nombre)}<br>🔢 Código: ${escapeHtml(productoOriginal.codigo_barras)}<br>📁 Categoría: ${escapeHtml(productoOriginal.categoria)}<br>💰 Precio venta: $${productoOriginal.precio_venta} | Precio compra: $${productoOriginal.precio_compra}<br>📏 Formato: ${productoOriginal.formato_venta} x ${productoOriginal.cantidad_formato}`;
         document.getElementById('resumenProductoBase').innerHTML = resumenHtml;
         document.getElementById('nuevoProductoBaseId').value = productoId;
@@ -826,6 +679,7 @@
         document.getElementById('nuevoLoteCantidad').value = '';
         document.getElementById('nuevoLoteFechaVencimiento').value = '';
         document.getElementById('nuevoLotePrecioCompra').value = '';
+        document.getElementById('nuevoLotePrecioVenta').value = '';
         agregarLoteModal.style.display = 'flex';
     };
 
@@ -850,12 +704,26 @@
         else if (productoBase.formato_venta === 'Paquete') { nuevoFormato = 'Caja'; nuevaCantidadFormato = 24; }
         else { nuevoFormato = 'Unidad'; nuevaCantidadFormato = 1; }
         
+        const nuevoPrecioCompraInput = document.getElementById('nuevoLotePrecioCompra').value;
+        const nuevoPrecioVentaInput = document.getElementById('nuevoLotePrecioVenta').value;
+        const precioCompraFinal = nuevoPrecioCompraInput ? parseFloat(nuevoPrecioCompraInput) : productoBase.precio_compra;
+        const precioVentaFinal = nuevoPrecioVentaInput ? parseFloat(nuevoPrecioVentaInput) : productoBase.precio_venta;
+        
         const nuevoProducto = {
-            codigo_barras: productoBase.codigo_barras, nombre: productoBase.nombre, descripcion: productoBase.descripcion,
-            categoria: productoBase.categoria, precio_compra: parseFloat(document.getElementById('nuevoLotePrecioCompra').value) || productoBase.precio_compra,
-            precio_venta: productoBase.precio_venta, stock: 0, stock_minimo: productoBase.stock_minimo,
-            unidad_medida: productoBase.unidad_medida, proveedor: productoBase.proveedor, ubicacion: productoBase.ubicacion,
-            formato_venta: nuevoFormato, cantidad_formato: nuevaCantidadFormato
+            codigo_barras: productoBase.codigo_barras,
+            nombre: productoBase.nombre,
+            descripcion: productoBase.descripcion,
+            categoria: productoBase.categoria,
+            precio_compra: precioCompraFinal,
+            precio_venta: precioVentaFinal,
+            stock: cantidad,
+            stock_minimo: productoBase.stock_minimo,
+            unidad_medida: productoBase.unidad_medida,
+            proveedor: productoBase.proveedor,
+            ubicacion: productoBase.ubicacion,
+            formato_venta: nuevoFormato,
+            cantidad_formato: nuevaCantidadFormato,
+            fecha_vencimiento: document.getElementById('nuevoLoteFechaVencimiento').value || null
         };
         
         const resProducto = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoProducto) });
@@ -864,17 +732,19 @@
         
         const nuevoProductoId = dataProducto.id;
         const loteData = {
-            producto_id: nuevoProductoId, cantidad: cantidad,
+            producto_id: nuevoProductoId,
+            cantidad: cantidad,
             fecha_vencimiento: document.getElementById('nuevoLoteFechaVencimiento').value || null,
-            precio_compra: parseFloat(document.getElementById('nuevoLotePrecioCompra').value) || productoBase.precio_compra,
+            precio_compra: precioCompraFinal,
             numero_lote: numeroLote
         };
         
         const resLote = await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
         const dataLote = await resLote.json();
         if (dataLote.ok) {
-            alert(`✅ Producto creado exitosamente!\n\n📦 ${productoBase.nombre}\n📏 Formato: ${nuevoFormato} x ${nuevaCantidadFormato}\n🔢 Lote: ${numeroLote}\n📊 Cantidad: ${cantidad} unidades`);
-            agregarLoteModal.style.display = 'none'; agregarLoteForm.reset();
+            alert(`✅ Producto creado exitosamente!\n\n📦 ${productoBase.nombre}\n📏 Formato: ${nuevoFormato} x ${nuevaCantidadFormato}\n💰 Precio compra: $${precioCompraFinal}\n💰 Precio venta: $${precioVentaFinal}\n🔢 Lote: ${numeroLote}\n📊 Stock inicial: ${cantidad} unidades`);
+            agregarLoteModal.style.display = 'none';
+            agregarLoteForm.reset();
             await cargarProductos();
         } else { alert('❌ Error al registrar el lote: ' + (dataLote.error || '')); }
     });
@@ -932,10 +802,8 @@
     function actualizarSelectoresFiltros() {
         const categorias = [...new Set(productos.map(p => p.categoria).filter(c => c))];
         const proveedores = [...new Set(productos.map(p => p.proveedor).filter(prov => prov))];
-        
         const catSelect = document.getElementById('filtroCategoria');
         const provSelect = document.getElementById('filtroProveedor');
-        
         catSelect.innerHTML = '<option value="">Todas las categorías</option>' + categorias.map(c => `<option value="${c}">${c}</option>`).join('');
         provSelect.innerHTML = '<option value="">Todos los proveedores</option>' + proveedores.map(p => `<option value="${p}">${p}</option>`).join('');
     }
@@ -966,6 +834,7 @@
         limpiarFiltros();
     }
 
+    // ======================= FORMULARIO PRINCIPAL CORREGIDO =======================
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!validateStep1() || !validateStep2()) {
@@ -991,7 +860,6 @@
             categoria: document.getElementById('categoria').value,
             precio_compra: parseFloat(document.getElementById('precio_compra').value) || 0,
             precio_venta: parseFloat(document.getElementById('precio_venta').value) || 0,
-            stock: cantidadLote,
             stock_minimo: parseInt(document.getElementById('stock_minimo').value) || 0,
             unidad_medida: document.getElementById('unidad_medida').value,
             proveedor: document.getElementById('proveedor').value,
@@ -1002,29 +870,58 @@
             fecha_vencimiento: fechaVencimientoLote
         };
         
+        // IMPORTANTE: Solo enviar stock cuando es NUEVO producto
+        if (!id) {
+            payload.stock = cantidadLote;
+        }
+        
         let res, productoId;
         
         if (id) {
+            // Actualizar producto (sin stock)
             res = await fetch(`${API_URL}/products/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await res.json();
             if (!data.ok) { alert('❌ Error al actualizar producto: ' + (data.error || '')); return; }
             productoId = parseInt(id);
             
             if (loteIdExistente) {
-                const loteData = { producto_id: productoId, cantidad: cantidadLote, fecha_vencimiento: fechaVencimientoLote, precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, numero_lote: numeroLote };
+                // Actualizar lote existente - el servidor maneja la diferencia de stock
+                const loteData = { 
+                    producto_id: productoId, 
+                    cantidad: cantidadLote, 
+                    fecha_vencimiento: fechaVencimientoLote, 
+                    precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, 
+                    numero_lote: numeroLote 
+                };
                 await fetch(`${API_URL}/batches/${loteIdExistente}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
                 alert('✅ Producto actualizado y lote actualizado');
             } else {
-                const loteData = { producto_id: productoId, cantidad: cantidadLote, fecha_vencimiento: fechaVencimientoLote, precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, numero_lote: numeroLote };
+                // Crear nuevo lote para producto existente
+                const loteData = { 
+                    producto_id: productoId, 
+                    cantidad: cantidadLote, 
+                    fecha_vencimiento: fechaVencimientoLote, 
+                    precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, 
+                    numero_lote: numeroLote 
+                };
                 await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
                 alert('✅ Producto actualizado y nuevo lote registrado');
             }
         } else {
+            // Crear nuevo producto (con stock incluido)
+            payload.stock = cantidadLote;
             res = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await res.json();
             if (!data.ok) { alert('❌ Error al crear producto: ' + (data.error || '')); return; }
             productoId = data.id;
-            const loteData = { producto_id: productoId, cantidad: cantidadLote, fecha_vencimiento: fechaVencimientoLote, precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, numero_lote: numeroLote };
+            
+            const loteData = { 
+                producto_id: productoId, 
+                cantidad: cantidadLote, 
+                fecha_vencimiento: fechaVencimientoLote, 
+                precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, 
+                numero_lote: numeroLote 
+            };
             await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
             alert('✅ Producto creado y lote registrado');
         }
@@ -1157,7 +1054,7 @@
         if (e.target === categoriaModal) cerrarModal(categoriaModal); 
         if (e.target === detallesModal) cerrarModal(detallesModal); 
     });
-    volverDashboard.addEventListener('click', () => { window.location.href = 'index_admin.html'; });
+    volverDashboard.addEventListener('click', () => { window.location.href = 'dashboard.html'; });
 
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }

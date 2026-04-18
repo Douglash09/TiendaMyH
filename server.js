@@ -147,7 +147,7 @@ app.get('/api/products/barcode/:codigo', (req, res) => {
     });
 });
 
-// Crear nuevo producto (CON FORMATEO DE FECHA)
+// Crear nuevo producto
 app.post('/api/products', (req, res) => {
     const { 
         codigo_barras, nombre, descripcion, categoria, 
@@ -187,7 +187,7 @@ app.post('/api/products', (req, res) => {
     });
 });
 
-// Actualizar producto (CON FORMATEO DE FECHA)
+// Actualizar producto (NO actualiza el stock, solo datos básicos)
 app.put('/api/products/:id', (req, res) => {
     const { id } = req.params;
     const updates = req.body;
@@ -196,8 +196,7 @@ app.put('/api/products/:id', (req, res) => {
     const values = [];
     
     Object.keys(updates).forEach(key => {
-        if (updates[key] !== undefined) {
-            // Formatear la fecha si es el campo fecha_vencimiento
+        if (updates[key] !== undefined && key !== 'stock') { // Excluir stock explícitamente
             if (key === 'fecha_vencimiento' && updates[key]) {
                 const fecha = new Date(updates[key]);
                 if (!isNaN(fecha.getTime())) {
@@ -297,7 +296,7 @@ app.get('/api/products/stats', (req, res) => {
 // ========== RUTAS DE LOTES ===================
 // =============================================
 
-// Obtener todos los lotes de un producto
+// Obtener todos los lotes de un producto (ordenados por fecha de vencimiento ASC)
 app.get('/api/batches/product/:productoId', (req, res) => {
     const { productoId } = req.params;
     const sql = 'SELECT * FROM lotes WHERE producto_id = ? ORDER BY fecha_vencimiento ASC, fecha_entrada ASC';
@@ -311,7 +310,7 @@ app.get('/api/batches/product/:productoId', (req, res) => {
     });
 });
 
-// Registrar nuevo lote (CON FORMATEO DE FECHA)
+// Registrar nuevo lote (NO actualiza stock - el stock ya está en el producto)
 app.post('/api/batches', (req, res) => {
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
     
@@ -328,58 +327,32 @@ app.post('/api/batches', (req, res) => {
         }
     }
     
-    db.beginTransaction(err => {
+    const sqlLote = `INSERT INTO lotes 
+        (producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote) 
+        VALUES (?, ?, ?, ?, ?)`;
+    
+    db.query(sqlLote, [producto_id, cantidad, fechaFormateada, precio_compra || null, numero_lote], (err, result) => {
         if (err) {
+            console.error("Error insertando lote:", err);
             return res.status(500).json({ ok: false, error: err.message });
         }
         
-        const sqlLote = `INSERT INTO lotes 
-            (producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote) 
-            VALUES (?, ?, ?, ?, ?)`;
-        
-        db.query(sqlLote, [producto_id, cantidad, fechaFormateada, precio_compra || null, numero_lote], (err, result) => {
+        // Actualizar la fecha de vencimiento del producto (solo si es más próxima)
+        const sqlUpdateFecha = `UPDATE productos SET fecha_vencimiento = ? 
+            WHERE id = ? AND (fecha_vencimiento IS NULL OR fecha_vencimiento > ?)`;
+        db.query(sqlUpdateFecha, [fechaFormateada, producto_id, fechaFormateada], (err) => {
             if (err) {
-                return db.rollback(() => {
-                    console.error("Error insertando lote:", err);
-                    res.status(500).json({ ok: false, error: err.message });
-                });
+                console.error("Error actualizando fecha:", err);
+                return res.status(500).json({ ok: false, error: err.message });
             }
             
-            const sqlUpdateStock = 'UPDATE productos SET stock = stock + ? WHERE id = ?';
-            db.query(sqlUpdateStock, [cantidad, producto_id], (err) => {
-                if (err) {
-                    return db.rollback(() => {
-                        console.error("Error actualizando stock:", err);
-                        res.status(500).json({ ok: false, error: err.message });
-                    });
-                }
-                
-                const sqlUpdateFecha = `UPDATE productos SET fecha_vencimiento = ? 
-                    WHERE id = ? AND (fecha_vencimiento IS NULL OR fecha_vencimiento > ?)`;
-                db.query(sqlUpdateFecha, [fechaFormateada, producto_id, fechaFormateada], (err) => {
-                    if (err) {
-                        return db.rollback(() => {
-                            console.error("Error actualizando fecha:", err);
-                            res.status(500).json({ ok: false, error: err.message });
-                        });
-                    }
-                    
-                    db.commit(err => {
-                        if (err) {
-                            return db.rollback(() => {
-                                console.error("Error en commit:", err);
-                                res.status(500).json({ ok: false, error: err.message });
-                            });
-                        }
-                        res.json({ ok: true, id: result.insertId, message: "Lote registrado exitosamente" });
-                    });
-                });
-            });
+            // NO actualizamos el stock aquí porque ya se estableció al crear/editar el producto
+            res.json({ ok: true, id: result.insertId, message: "Lote registrado exitosamente" });
         });
     });
 });
 
-// Actualizar lote existente (CON FORMATEO DE FECHA)
+// Actualizar lote existente (PUT) - actualiza stock según diferencia de cantidad
 app.put('/api/batches/:id', (req, res) => {
     const loteId = req.params.id;
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
@@ -453,7 +426,7 @@ app.put('/api/batches/:id', (req, res) => {
     });
 });
 
-// Eliminar lote
+// Eliminar lote (DELETE) - resta stock
 app.delete('/api/batches/:id', (req, res) => {
     const loteId = req.params.id;
     
@@ -502,7 +475,7 @@ app.delete('/api/batches/:id', (req, res) => {
     });
 });
 
-// Obtener todos los lotes
+// Obtener todos los lotes (con información del producto)
 app.get('/api/batches', (req, res) => {
     const sql = `
         SELECT l.*, p.nombre as producto_nombre, p.codigo_barras, p.formato_venta
@@ -524,6 +497,7 @@ app.get('/api/batches', (req, res) => {
 // ========== RUTAS DE AUTENTICACIÓN ===========
 // =============================================
 
+// Servir páginas HTML
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "roles.html"));
 });
@@ -540,14 +514,25 @@ app.get("/inventario", (req, res) => {
     res.sendFile(path.join(__dirname, "index.html"));
 });
 
+app.get("/dashboard", (req, res) => {
+    res.sendFile(path.join(__dirname, "dashboard.html"));
+});
+
+app.get("/productos", (req, res) => {
+    res.sendFile(path.join(__dirname, "productos.html"));
+});
+
+// Login Admin
 app.post("/login_admin", (req, res) => {
     loginGenerico("admin", req, res);
 });
 
+// Login Empleado
 app.post("/login_empleado", (req, res) => {
     loginGenerico("empleado", req, res);
 });
 
+// ===== FUNCIÓN GENÉRICA PARA LOGIN =====
 function validarCredenciales(usuario, password) {
     if (!usuario || !password) {
         return { valido: false, mensaje: "Usuario y contraseña son requeridos" };
@@ -619,6 +604,7 @@ function loginGenerico(tipo, req, res) {
     });
 }
 
+// Verificar estado de la base de datos
 app.get("/api/db-check", (req, res) => {
     db.query("SELECT 1", (err) => {
         if (err) {
@@ -636,6 +622,7 @@ app.get("/api/db-check", (req, res) => {
     });
 });
 
+// ===== MANEJO DE ERRORES 404 =====
 app.use((req, res) => {
     res.status(404).json({
         error: "Ruta no encontrada",
@@ -643,6 +630,7 @@ app.use((req, res) => {
     });
 });
 
+// ===== MANEJO DE ERRORES GLOBAL =====
 process.on('uncaughtException', (err) => {
     console.error('❌ Error no capturado:', err);
 });
@@ -651,6 +639,7 @@ process.on('unhandledRejection', (err) => {
     console.error('❌ Promesa rechazada no manejada:', err);
 });
 
+// ===== INICIAR SERVIDOR =====
 app.listen(PORT, () => {
     console.log(`
     ╔═══════════════════════════════════════════════════╗
@@ -661,10 +650,15 @@ app.listen(PORT, () => {
     ║   📄 Gestión: /gestion                            ║
     ║   📄 Alertas: /alerta                             ║
     ║   📄 Inventario: /inventario                      ║
+    ║   📄 Dashboard: /dashboard                        ║
+    ║   📄 Productos: /productos                        ║
     ║   💵 Moneda: USD ($)                              ║
     ║   📦 API Productos: Activa                        ║
     ║   📦 API Lotes: Activa (CRUD completo)            ║
     ║   📦 API Categorías: Activa                       ║
+    ║   ✅ Stock: NO se duplica                         ║
+    ║   ✅ Fechas: Formato YYYY-MM-DD                   ║
+    ║   ✅ Edición: NO envía stock al producto          ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });

@@ -86,10 +86,10 @@
             gap: 10px;
         }
         
-        /* Stats Grid */
+        /* Stats Grid - Ahora con 6 columnas para más métricas */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(3, 1fr);
             gap: 20px;
             margin-bottom: 28px;
         }
@@ -119,10 +119,11 @@
             color: var(--primary);
             font-size: 1.4rem;
         }
-        .stat-number { font-size: 2rem; font-weight: 800; color: var(--primary); margin: 8px 0 4px; }
-        .stat-label { color: var(--muted); font-size: 0.75rem; }
+        .stat-number { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 8px 0 4px; }
+        .stat-label { color: var(--muted); font-size: 0.7rem; }
         .stat-card.warn { border-left: 4px solid var(--warning); }
         .stat-card.alert { border-left: 4px solid var(--danger); }
+        .stat-card.success { border-left: 4px solid var(--success); }
         
         /* Tabs */
         .tabs {
@@ -254,7 +255,8 @@
         .badge-expiry { background: var(--danger); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.65rem; }
         
         @media (max-width: 1000px) {
-            .stats-grid, .mini-kpis { grid-template-columns: repeat(2, 1fr); }
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .mini-kpis { grid-template-columns: repeat(2, 1fr); }
             .cards-2col { grid-template-columns: 1fr; }
         }
         @media (max-width: 600px) {
@@ -272,7 +274,7 @@
 <div class="container">
     <div class="top">
         <div class="brand">
-            <h1><i class="fas fa-chart-line"></i> SISTEMA DE INVENTARIO</h1>
+            <h1><i class="fas fa-chart-line"></i> SISTEMA DE INVENTARIO Y VENTAS MINI SUPER M&H</h1>
             <p>Monitoreo y gestión de productos en tiempo real</p>
         </div>
         <div class="top-buttons">
@@ -288,23 +290,31 @@
         </div>
     </div>
 
-    <!-- KPIs principales -->
+    <!-- KPIs principales - Ahora con 6 métricas financieras -->
     <div class="stats-grid">
         <div class="stat-card">
             <div class="stat-header"><h3>Total de productos</h3><div class="icon-svg"><i class="fas fa-boxes"></i></div></div>
             <div class="stat-number" id="totalProductos">--</div><div class="stat-label">Productos registrados</div>
         </div>
         <div class="stat-card">
-            <div class="stat-header"><h3>Valor total</h3><div class="icon-svg"><i class="fas fa-dollar-sign"></i></div></div>
-            <div class="stat-number" id="valorTotal">--</div><div class="stat-label">Valor del inventario (USD)</div>
-        </div>
-        <div class="stat-card warn">
             <div class="stat-header"><h3>Stock total</h3><div class="icon-svg"><i class="fas fa-cubes"></i></div></div>
             <div class="stat-number" id="stockTotal">--</div><div class="stat-label">Unidades en stock</div>
         </div>
         <div class="stat-card alert">
             <div class="stat-header"><h3>Alertas Stock</h3><div class="icon-svg"><i class="fas fa-exclamation-triangle"></i></div></div>
             <div class="stat-number" id="alertasStock">--</div><div class="stat-label">Productos con stock bajo</div>
+        </div>
+        <div class="stat-card warn">
+            <div class="stat-header"><h3>💰 Valor Invertido</h3><div class="icon-svg"><i class="fas fa-shopping-cart"></i></div></div>
+            <div class="stat-number" id="valorInvertido">--</div><div class="stat-label">Costo total del inventario</div>
+        </div>
+        <div class="stat-card success">
+            <div class="stat-header"><h3>💵 Valor de Venta</h3><div class="icon-svg"><i class="fas fa-tag"></i></div></div>
+            <div class="stat-number" id="valorVenta">--</div><div class="stat-label">Precio de venta total</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-header"><h3>📈 Ganancia Potencial</h3><div class="icon-svg"><i class="fas fa-chart-line"></i></div></div>
+            <div class="stat-number" id="gananciaPotencial">--</div><div class="stat-label">Ganancia si se vende todo</div>
         </div>
     </div>
 
@@ -330,7 +340,7 @@
     <!-- Panel doble -->
     <div class="cards-2col">
         <div class="panel">
-            <h3><i class="fas fa-trophy"></i> Top 5 Productos por Valor</h3>
+            <h3><i class="fas fa-trophy"></i> Top 5 Productos por Valor de Venta</h3>
             <p class="muted">(precio venta × stock)</p>
             <div id="top5List"></div>
         </div>
@@ -472,7 +482,6 @@
             }
         }
         
-        // Ordenar por gravedad (críticas primero)
         alertas.sort((a, b) => {
             if (a.gravedad === 'critica' && b.gravedad !== 'critica') return -1;
             if (a.gravedad !== 'critica' && b.gravedad === 'critica') return 1;
@@ -526,8 +535,20 @@
             // Métricas base
             const totalProductos = productos.length;
             const totalStock = productos.reduce((sum, p) => sum + (Number(p.stock) || 0), 0);
-            const valorTotal = productos.reduce((sum, p) => sum + ((Number(p.precio_venta) || 0) * (Number(p.stock) || 0)), 0);
             const alertasStock = productos.filter(p => (Number(p.stock) || 0) <= (Number(p.stock_minimo) || 0)).length;
+            
+            // MÉTRICAS FINANCIERAS
+            // Valor Invertido (costo total) = suma(precio_compra × stock)
+            const valorInvertido = productos.reduce((sum, p) => sum + ((Number(p.precio_compra) || 0) * (Number(p.stock) || 0)), 0);
+            
+            // Valor de Venta (precio total) = suma(precio_venta × stock)
+            const valorVenta = productos.reduce((sum, p) => sum + ((Number(p.precio_venta) || 0) * (Number(p.stock) || 0)), 0);
+            
+            // Ganancia Potencial = Valor Venta - Valor Invertido
+            const gananciaPotencial = valorVenta - valorInvertido;
+            
+            // Margen de ganancia porcentual
+            const margenGanancia = valorVenta > 0 ? (gananciaPotencial / valorVenta) * 100 : 0;
             
             // Categorías únicas
             const categoriasUnicas = [...new Set(productos.map(p => p.categoria).filter(c => c))];
@@ -546,9 +567,21 @@
             
             // Actualizar KPIs principales
             document.getElementById('totalProductos').innerText = totalProductos;
-            document.getElementById('valorTotal').innerText = formatMoney(valorTotal);
             document.getElementById('stockTotal').innerText = totalStock;
             document.getElementById('alertasStock').innerText = alertasStock;
+            
+            // Actualizar métricas financieras
+            document.getElementById('valorInvertido').innerText = formatMoney(valorInvertido);
+            document.getElementById('valorVenta').innerText = formatMoney(valorVenta);
+            document.getElementById('gananciaPotencial').innerText = formatMoney(gananciaPotencial);
+            
+            // Actualizar color de ganancia (verde si es positiva, rojo si es negativa)
+            const gananciaElement = document.getElementById('gananciaPotencial');
+            if (gananciaPotencial >= 0) {
+                gananciaElement.style.color = 'var(--success)';
+            } else {
+                gananciaElement.style.color = 'var(--danger)';
+            }
             
             // Mini KPIs
             document.getElementById('miniActivos').innerText = totalProductos;
@@ -556,10 +589,11 @@
             document.getElementById('miniCats').innerText = totalCategorias;
             document.getElementById('miniUnits').innerText = totalStock;
             
-            // Top 5 por valor
+            // Top 5 por valor de venta
             const productosConValor = productos.map(p => ({
                 ...p,
-                _valor: (Number(p.precio_venta) || 0) * (Number(p.stock) || 0)
+                _valor: (Number(p.precio_venta) || 0) * (Number(p.stock) || 0),
+                _costo: (Number(p.precio_compra) || 0) * (Number(p.stock) || 0)
             }));
             productosConValor.sort((a, b) => b._valor - a._valor);
             const top5 = productosConValor.slice(0, 5);
@@ -569,16 +603,17 @@
                 top5Container.innerHTML = '<div class="muted">No hay productos registrados</div>';
             } else {
                 top5Container.innerHTML = top5.map(p => {
-                    const percent = valorTotal > 0 ? (p._valor / valorTotal) * 100 : 0;
+                    const percent = valorVenta > 0 ? (p._valor / valorVenta) * 100 : 0;
+                    const gananciaProducto = p._valor - p._costo;
                     return `
                         <div class="rowbar">
                             <div style="flex:1">
                                 <strong>${escapeHtml(p.nombre)}</strong><br>
                                 <span class="muted" style="font-size:0.7rem;">${escapeHtml(p.categoria || 'General')} | Stock: ${p.stock}</span>
                             </div>
-                            <div style="min-width:140px">
+                            <div style="min-width:160px; text-align:right;">
                                 <div class="bar"><i style="width:${Math.min(100, percent)}%"></i></div>
-                                <div class="muted" style="text-align:right; font-size:0.7rem;">${formatMoney(p._valor)}</div>
+                                <div class="muted" style="font-size:0.7rem;">Venta: ${formatMoney(p._valor)} | Ganancia: ${formatMoney(gananciaProducto)}</div>
                             </div>
                         </div>
                     `;
@@ -617,9 +652,11 @@
     
     function mostrarError() {
         document.getElementById('totalProductos').innerText = '0';
-        document.getElementById('valorTotal').innerText = '$0';
         document.getElementById('stockTotal').innerText = '0';
         document.getElementById('alertasStock').innerText = '0';
+        document.getElementById('valorInvertido').innerText = '$0';
+        document.getElementById('valorVenta').innerText = '$0';
+        document.getElementById('gananciaPotencial').innerText = '$0';
         document.getElementById('miniActivos').innerText = '0';
         document.getElementById('miniBajo').innerText = '0';
         document.getElementById('miniCats').innerText = '0';
