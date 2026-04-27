@@ -70,11 +70,10 @@ function crearTablaProductos() {
             precio_venta DECIMAL(10,2) NOT NULL DEFAULT 0.00,
             stock INT NOT NULL DEFAULT 0,
             stock_minimo INT NOT NULL DEFAULT 5,
-            unidad_medida VARCHAR(20) DEFAULT 'unidad',
+            unidad_medida ENUM('Pieza', 'Kilogramo', 'Gramo', 'Litro', 'Mililitro', 'Metro', 'Centímetro', 'Paquete', 'Caja', 'Fardo', 'Docena', 'Bolsa', 'Botella', 'Lata') NOT NULL DEFAULT 'Pieza',
+            cantidad_por_unidad INT NOT NULL DEFAULT 1,
             proveedor VARCHAR(100),
             ubicacion VARCHAR(50),
-            formato_venta ENUM('Unidad', 'Paquete', 'Fardo', 'Caja', 'Docena') DEFAULT 'Unidad',
-            cantidad_formato INT DEFAULT 1,
             fecha_vencimiento DATE,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -104,6 +103,7 @@ function crearTablaLotes() {
             fecha_entrada TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             FOREIGN KEY (producto_id) REFERENCES productos(id) ON DELETE CASCADE,
             INDEX idx_producto (producto_id),
+            INDEX idx_numero_lote (numero_lote),
             INDEX idx_fecha_vencimiento (fecha_vencimiento)
         )
     `;
@@ -124,7 +124,6 @@ app.use(express.static(__dirname));
 // ========== RUTAS DE PRODUCTOS ===============
 // =============================================
 
-// Obtener todos los productos
 app.get('/api/products', (req, res) => {
     db.query('SELECT * FROM productos ORDER BY id DESC', (err, results) => {
         if (err) {
@@ -135,7 +134,6 @@ app.get('/api/products', (req, res) => {
     });
 });
 
-// Buscar producto por código de barras o nombre
 app.get('/api/products/barcode/:codigo', (req, res) => {
     const { codigo } = req.params;
     db.query('SELECT * FROM productos WHERE codigo_barras = ? OR nombre LIKE ?', [codigo, `%${codigo}%`], (err, results) => {
@@ -147,16 +145,13 @@ app.get('/api/products/barcode/:codigo', (req, res) => {
     });
 });
 
-// Crear nuevo producto
 app.post('/api/products', (req, res) => {
     const { 
         codigo_barras, nombre, descripcion, categoria, 
         precio_compra, precio_venta, stock, stock_minimo, 
-        unidad_medida, proveedor, ubicacion, formato_venta, 
-        cantidad_formato, fecha_vencimiento 
+        unidad_medida, cantidad_por_unidad, proveedor, ubicacion, fecha_vencimiento 
     } = req.body;
     
-    // Formatear la fecha correctamente
     let fechaFormateada = null;
     if (fecha_vencimiento) {
         const fecha = new Date(fecha_vencimiento);
@@ -167,17 +162,15 @@ app.post('/api/products', (req, res) => {
     
     const sql = `INSERT INTO productos 
         (codigo_barras, nombre, descripcion, categoria, precio_compra, precio_venta, 
-         stock, stock_minimo, unidad_medida, proveedor, ubicacion, formato_venta, 
-         cantidad_formato, fecha_vencimiento)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+         stock, stock_minimo, unidad_medida, cantidad_por_unidad, proveedor, ubicacion, fecha_vencimiento)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
     db.query(sql, [
         codigo_barras, nombre, descripcion, categoria, 
         precio_compra || 0, precio_venta || 0, 
         stock || 0, stock_minimo || 5, 
-        unidad_medida, proveedor, ubicacion, 
-        formato_venta || 'Unidad', cantidad_formato || 1, 
-        fechaFormateada
+        unidad_medida || 'Pieza', cantidad_por_unidad || 1, 
+        proveedor, ubicacion, fechaFormateada
     ], (err, result) => {
         if (err) {
             console.error("Error creando producto:", err);
@@ -187,16 +180,23 @@ app.post('/api/products', (req, res) => {
     });
 });
 
-// Actualizar producto (NO actualiza el stock, solo datos básicos)
 app.put('/api/products/:id', (req, res) => {
     const { id } = req.params;
-    const updates = req.body;
+    let updates = req.body;
+    
+    if (updates.cantidad_formato !== undefined && updates.cantidad_por_unidad === undefined) {
+        updates.cantidad_por_unidad = updates.cantidad_formato;
+        delete updates.cantidad_formato;
+    }
+    if (updates.formato_venta !== undefined) {
+        delete updates.formato_venta;
+    }
     
     const fields = [];
     const values = [];
     
     Object.keys(updates).forEach(key => {
-        if (updates[key] !== undefined && key !== 'stock') { // Excluir stock explícitamente
+        if (updates[key] !== undefined && key !== 'stock') {
             if (key === 'fecha_vencimiento' && updates[key]) {
                 const fecha = new Date(updates[key]);
                 if (!isNaN(fecha.getTime())) {
@@ -207,7 +207,7 @@ app.put('/api/products/:id', (req, res) => {
                     fields.push(`${key}=?`);
                     values.push(null);
                 }
-            } else {
+            } else if (key !== 'formato_venta' && key !== 'cantidad_formato') {
                 fields.push(`${key}=?`);
                 values.push(updates[key]);
             }
@@ -230,19 +230,28 @@ app.put('/api/products/:id', (req, res) => {
     });
 });
 
-// Eliminar producto
+// ELIMINAR PRODUCTO - Ahora con CASCADE se elimina todo automáticamente
 app.delete('/api/products/:id', (req, res) => {
     const { id } = req.params;
-    db.query('DELETE FROM productos WHERE id=?', [id], (err) => {
+    
+    // Primero obtener los lotes para actualizar stock si es necesario
+    db.query('SELECT * FROM lotes WHERE producto_id = ?', [id], (err, lotes) => {
         if (err) {
-            console.error("Error eliminando producto:", err);
+            console.error("Error obteniendo lotes:", err);
             return res.status(500).json({ ok: false, error: err.message });
         }
-        res.json({ ok: true, message: "Producto eliminado exitosamente" });
+        
+        // Eliminar el producto (los lotes se eliminan por CASCADE)
+        db.query('DELETE FROM productos WHERE id=?', [id], (err) => {
+            if (err) {
+                console.error("Error eliminando producto:", err);
+                return res.status(500).json({ ok: false, error: err.message });
+            }
+            res.json({ ok: true, message: "Producto eliminado exitosamente" });
+        });
     });
 });
 
-// Obtener todas las categorías
 app.get('/api/categories', (req, res) => {
     db.query('SELECT * FROM categorias ORDER BY nombre', (err, results) => {
         if (err) {
@@ -253,14 +262,11 @@ app.get('/api/categories', (req, res) => {
     });
 });
 
-// Crear nueva categoría
 app.post('/api/categories', (req, res) => {
     const { nombre, descripcion } = req.body;
-    
     if (!nombre) {
         return res.status(400).json({ ok: false, error: "El nombre es obligatorio" });
     }
-    
     db.query('INSERT INTO categorias (nombre, descripcion) VALUES (?, ?)', [nombre, descripcion || null], (err, result) => {
         if (err) {
             console.error("Error creando categoría:", err);
@@ -270,7 +276,6 @@ app.post('/api/categories', (req, res) => {
     });
 });
 
-// Obtener estadísticas de productos (para el dashboard)
 app.get('/api/products/stats', (req, res) => {
     const sql = `
         SELECT 
@@ -282,7 +287,6 @@ app.get('/api/products/stats', (req, res) => {
             AVG(precio_venta) as precio_promedio
         FROM productos
     `;
-    
     db.query(sql, (err, results) => {
         if (err) {
             console.error("Error obteniendo estadísticas:", err);
@@ -296,11 +300,9 @@ app.get('/api/products/stats', (req, res) => {
 // ========== RUTAS DE LOTES ===================
 // =============================================
 
-// Obtener todos los lotes de un producto (ordenados por fecha de vencimiento ASC)
 app.get('/api/batches/product/:productoId', (req, res) => {
     const { productoId } = req.params;
     const sql = 'SELECT * FROM lotes WHERE producto_id = ? ORDER BY fecha_vencimiento ASC, fecha_entrada ASC';
-    
     db.query(sql, [productoId], (err, results) => {
         if (err) {
             console.error("Error obteniendo lotes:", err);
@@ -310,15 +312,12 @@ app.get('/api/batches/product/:productoId', (req, res) => {
     });
 });
 
-// Registrar nuevo lote (NO actualiza stock - el stock ya está en el producto)
 app.post('/api/batches', (req, res) => {
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
-    
     if (!producto_id || !cantidad || !numero_lote) {
         return res.status(400).json({ ok: false, error: "Producto, cantidad y número de lote son obligatorios" });
     }
     
-    // Formatear la fecha
     let fechaFormateada = null;
     if (fecha_vencimiento) {
         const fecha = new Date(fecha_vencimiento);
@@ -345,24 +344,21 @@ app.post('/api/batches', (req, res) => {
                 console.error("Error actualizando fecha:", err);
                 return res.status(500).json({ ok: false, error: err.message });
             }
-            
-            // NO actualizamos el stock aquí porque ya se estableció al crear/editar el producto
             res.json({ ok: true, id: result.insertId, message: "Lote registrado exitosamente" });
         });
     });
 });
 
-// Actualizar lote existente (PUT) - actualiza stock según diferencia de cantidad
+// ACTUALIZAR LOTE - Actualiza fecha del producto correctamente
 app.put('/api/batches/:id', (req, res) => {
     const loteId = req.params.id;
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
     
-    // Formatear la fecha
-    let fechaFormateada = null;
+    let nuevaFechaFormateada = null;
     if (fecha_vencimiento) {
         const fecha = new Date(fecha_vencimiento);
         if (!isNaN(fecha.getTime())) {
-            fechaFormateada = fecha.toISOString().split('T')[0];
+            nuevaFechaFormateada = fecha.toISOString().split('T')[0];
         }
     }
     
@@ -383,7 +379,7 @@ app.put('/api/batches/:id', (req, res) => {
             }
             
             const sqlUpdate = 'UPDATE lotes SET cantidad = ?, fecha_vencimiento = ?, precio_compra = ?, numero_lote = ? WHERE id = ?';
-            db.query(sqlUpdate, [cantidad, fechaFormateada, precio_compra || null, numero_lote, loteId], (err) => {
+            db.query(sqlUpdate, [cantidad, nuevaFechaFormateada, precio_compra || null, numero_lote, loteId], (err) => {
                 if (err) {
                     return db.rollback(() => {
                         console.error("Error actualizando lote:", err);
@@ -391,6 +387,7 @@ app.put('/api/batches/:id', (req, res) => {
                     });
                 }
                 
+                // Actualizar stock si hay diferencia
                 if (diferenciaCantidad !== 0) {
                     db.query('UPDATE productos SET stock = stock + ? WHERE id = ?', [diferenciaCantidad, producto_id], (err) => {
                         if (err) {
@@ -400,25 +397,53 @@ app.put('/api/batches/:id', (req, res) => {
                             });
                         }
                         
-                        db.commit(err => {
+                        // Actualizar fecha del producto con la fecha más próxima de todos los lotes
+                        const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
+                        db.query(sqlGetMinFecha, [producto_id], (err, result) => {
                             if (err) {
                                 return db.rollback(() => {
-                                    console.error("Error en commit:", err);
+                                    console.error("Error obteniendo fecha mínima:", err);
                                     res.status(500).json({ ok: false, error: err.message });
                                 });
                             }
-                            res.json({ ok: true, message: "Lote actualizado exitosamente" });
+                            const fechaMin = result[0]?.fecha_min || null;
+                            db.query('UPDATE productos SET fecha_vencimiento = ? WHERE id = ?', [fechaMin, producto_id], (err) => {
+                                if (err) {
+                                    return db.rollback(() => {
+                                        console.error("Error actualizando fecha del producto:", err);
+                                        res.status(500).json({ ok: false, error: err.message });
+                                    });
+                                }
+                                db.commit(err => {
+                                    if (err) return db.rollback(() => res.status(500).json({ ok: false, error: err.message }));
+                                    res.json({ ok: true, message: "Lote actualizado exitosamente" });
+                                });
+                            });
                         });
                     });
                 } else {
-                    db.commit(err => {
+                    // Solo actualizar fecha si no cambió la cantidad
+                    const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
+                    db.query(sqlGetMinFecha, [producto_id], (err, result) => {
                         if (err) {
                             return db.rollback(() => {
-                                console.error("Error en commit:", err);
+                                console.error("Error obteniendo fecha mínima:", err);
                                 res.status(500).json({ ok: false, error: err.message });
                             });
                         }
-                        res.json({ ok: true, message: "Lote actualizado exitosamente" });
+                        const fechaMin = result[0]?.fecha_min || null;
+                        db.query('UPDATE productos SET fecha_vencimiento = ? WHERE id = ?', [fechaMin, producto_id], (err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    console.error("Error actualizando fecha del producto:", err);
+                                    res.status(500).json({ ok: false, error: err.message });
+                                });
+                            }
+                            db.commit(err => {
+                                if (err) return db.rollback(() => res.status(500).json({ ok: false, error: err.message }));
+                                res.json({ ok: true, message: "Lote actualizado exitosamente" });
+                            });
+                        });
                     });
                 }
             });
@@ -426,7 +451,6 @@ app.put('/api/batches/:id', (req, res) => {
     });
 });
 
-// Eliminar lote (DELETE) - resta stock
 app.delete('/api/batches/:id', (req, res) => {
     const loteId = req.params.id;
     
@@ -452,22 +476,41 @@ app.delete('/api/batches/:id', (req, res) => {
                     });
                 }
                 
-                db.query('DELETE FROM lotes WHERE id = ?', [loteId], (err) => {
+                const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
+                db.query(sqlGetMinFecha, [lote[0].producto_id], (err, result) => {
                     if (err) {
                         return db.rollback(() => {
-                            console.error("Error eliminando lote:", err);
+                            console.error("Error obteniendo fecha mínima:", err);
                             res.status(500).json({ ok: false, error: err.message });
                         });
                     }
-                    
-                    db.commit(err => {
+                    const fechaMin = result[0]?.fecha_min || null;
+                    db.query('UPDATE productos SET fecha_vencimiento = ? WHERE id = ?', [fechaMin, lote[0].producto_id], (err) => {
                         if (err) {
                             return db.rollback(() => {
-                                console.error("Error en commit:", err);
+                                console.error("Error actualizando fecha del producto:", err);
                                 res.status(500).json({ ok: false, error: err.message });
                             });
                         }
-                        res.json({ ok: true, message: "Lote eliminado exitosamente" });
+                        
+                        db.query('DELETE FROM lotes WHERE id = ?', [loteId], (err) => {
+                            if (err) {
+                                return db.rollback(() => {
+                                    console.error("Error eliminando lote:", err);
+                                    res.status(500).json({ ok: false, error: err.message });
+                                });
+                            }
+                            
+                            db.commit(err => {
+                                if (err) {
+                                    return db.rollback(() => {
+                                        console.error("Error en commit:", err);
+                                        res.status(500).json({ ok: false, error: err.message });
+                                    });
+                                }
+                                res.json({ ok: true, message: "Lote eliminado exitosamente" });
+                            });
+                        });
                     });
                 });
             });
@@ -475,15 +518,13 @@ app.delete('/api/batches/:id', (req, res) => {
     });
 });
 
-// Obtener todos los lotes (con información del producto)
 app.get('/api/batches', (req, res) => {
     const sql = `
-        SELECT l.*, p.nombre as producto_nombre, p.codigo_barras, p.formato_venta
+        SELECT l.*, p.nombre as producto_nombre, p.codigo_barras, p.unidad_medida
         FROM lotes l
         JOIN productos p ON l.producto_id = p.id
         ORDER BY l.fecha_vencimiento ASC, l.fecha_entrada ASC
     `;
-    
     db.query(sql, (err, results) => {
         if (err) {
             console.error("Error obteniendo lotes:", err);
@@ -494,10 +535,101 @@ app.get('/api/batches', (req, res) => {
 });
 
 // =============================================
+// ========== RUTAS DE VENTAS ==================
+// =============================================
+
+app.get('/api/ventas', (req, res) => {
+    db.query('SELECT * FROM venta ORDER BY fecha_venta DESC', (err, results) => {
+        if (err) {
+            console.error("Error obteniendo ventas:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, data: results });
+    });
+});
+
+app.get('/api/ventas/:id/detalle', (req, res) => {
+    const { id } = req.params;
+    const sql = `
+        SELECT dv.*, p.nombre, p.unidad_medida, p.cantidad_por_unidad
+        FROM detalle_venta dv
+        JOIN productos p ON dv.id_producto = p.id
+        WHERE dv.id_venta = ?
+    `;
+    db.query(sql, [id], (err, results) => {
+        if (err) {
+            console.error("Error obteniendo detalle de venta:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, data: results });
+    });
+});
+
+app.post('/api/ventas', (req, res) => {
+    const { folio, id_usuario, subtotal, iva, total, metodo_pago, detalle } = req.body;
+    
+    db.beginTransaction(err => {
+        if (err) {
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        
+        const sqlVenta = `INSERT INTO venta (folio, id_usuario, subtotal, iva, total, metodo_pago) 
+                          VALUES (?, ?, ?, ?, ?, ?)`;
+        
+        db.query(sqlVenta, [folio, id_usuario, subtotal, iva, total, metodo_pago || 'efectivo'], (err, result) => {
+            if (err) {
+                return db.rollback(() => {
+                    console.error("Error insertando venta:", err);
+                    res.status(500).json({ ok: false, error: err.message });
+                });
+            }
+            
+            const ventaId = result.insertId;
+            let detalleCompletado = 0;
+            
+            for (const item of detalle) {
+                const sqlDetalle = `INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal) 
+                                    VALUES (?, ?, ?, ?, ?)`;
+                
+                db.query(sqlDetalle, [ventaId, item.id_producto, item.cantidad, item.precio_unitario, item.subtotal], (err) => {
+                    if (err) {
+                        return db.rollback(() => {
+                            console.error("Error insertando detalle de venta:", err);
+                            res.status(500).json({ ok: false, error: err.message });
+                        });
+                    }
+                    
+                    db.query('UPDATE productos SET stock = stock - ? WHERE id = ?', [item.cantidad, item.id_producto], (err) => {
+                        if (err) {
+                            return db.rollback(() => {
+                                console.error("Error actualizando stock:", err);
+                                res.status(500).json({ ok: false, error: err.message });
+                            });
+                        }
+                        
+                        detalleCompletado++;
+                        if (detalleCompletado === detalle.length) {
+                            db.commit(err => {
+                                if (err) {
+                                    return db.rollback(() => {
+                                        console.error("Error en commit:", err);
+                                        res.status(500).json({ ok: false, error: err.message });
+                                    });
+                                }
+                                res.json({ ok: true, id: ventaId, message: "Venta registrada exitosamente" });
+                            });
+                        }
+                    });
+                });
+            }
+        });
+    });
+});
+
+// =============================================
 // ========== RUTAS DE AUTENTICACIÓN ===========
 // =============================================
 
-// Servir páginas HTML
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "roles.html"));
 });
@@ -522,17 +654,14 @@ app.get("/productos", (req, res) => {
     res.sendFile(path.join(__dirname, "productos.html"));
 });
 
-// Login Admin
 app.post("/login_admin", (req, res) => {
     loginGenerico("admin", req, res);
 });
 
-// Login Empleado
 app.post("/login_empleado", (req, res) => {
     loginGenerico("empleado", req, res);
 });
 
-// ===== FUNCIÓN GENÉRICA PARA LOGIN =====
 function validarCredenciales(usuario, password) {
     if (!usuario || !password) {
         return { valido: false, mensaje: "Usuario y contraseña son requeridos" };
@@ -604,7 +733,6 @@ function loginGenerico(tipo, req, res) {
     });
 }
 
-// Verificar estado de la base de datos
 app.get("/api/db-check", (req, res) => {
     db.query("SELECT 1", (err) => {
         if (err) {
@@ -622,7 +750,6 @@ app.get("/api/db-check", (req, res) => {
     });
 });
 
-// ===== MANEJO DE ERRORES 404 =====
 app.use((req, res) => {
     res.status(404).json({
         error: "Ruta no encontrada",
@@ -630,7 +757,6 @@ app.use((req, res) => {
     });
 });
 
-// ===== MANEJO DE ERRORES GLOBAL =====
 process.on('uncaughtException', (err) => {
     console.error('❌ Error no capturado:', err);
 });
@@ -639,26 +765,18 @@ process.on('unhandledRejection', (err) => {
     console.error('❌ Promesa rechazada no manejada:', err);
 });
 
-// ===== INICIAR SERVIDOR =====
 app.listen(PORT, () => {
     console.log(`
     ╔═══════════════════════════════════════════════════╗
     ║   🚀 SERVIDOR CORRIENDO                           ║
     ╠═══════════════════════════════════════════════════╣
     ║   📍 URL: http://localhost:${PORT}                 ║
-    ║   📄 Página principal: roles.html                 ║
-    ║   📄 Gestión: /gestion                            ║
-    ║   📄 Alertas: /alerta                             ║
-    ║   📄 Inventario: /inventario                      ║
-    ║   📄 Dashboard: /dashboard                        ║
     ║   📄 Productos: /productos                        ║
+    ║   📄 Dashboard: /dashboard                        ║
+    ║   📄 Alertas: /alerta                             ║
     ║   💵 Moneda: USD ($)                              ║
-    ║   📦 API Productos: Activa                        ║
-    ║   📦 API Lotes: Activa (CRUD completo)            ║
-    ║   📦 API Categorías: Activa                       ║
-    ║   ✅ Stock: NO se duplica                         ║
-    ║   ✅ Fechas: Formato YYYY-MM-DD                   ║
-    ║   ✅ Edición: NO envía stock al producto          ║
+    ║   ✅ Productos: Se pueden eliminar (CASCADE)      ║
+    ║   ✅ Fechas: Se actualizan al editar lote         ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });

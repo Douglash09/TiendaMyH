@@ -42,13 +42,15 @@
         .header-bar { background: var(--card); border-radius: 24px; padding: 20px 28px; margin-bottom: 28px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
         .logo h1 { font-size: 1.6rem; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo p { font-size: 0.8rem; color: var(--muted); }
-        .header-actions { display: flex; gap: 12px; }
+        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
         .btn { padding: 10px 20px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Poppins', sans-serif; background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
         .btn-secondary { background: #6c757d; }
+        .btn-clear { background: #6c757d; color: white; }
+        .btn-clear:hover { background: #5a6268; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .alert-banner { background: linear-gradient(135deg, #ff6b6b, #c92a2a); color: white; padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; cursor: pointer; }
         
@@ -92,19 +94,48 @@
             margin-bottom: 28px;
             box-shadow: var(--shadow);
         }
-        .search-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .search-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: space-between; }
+        .search-buttons { display: flex; gap: 12px; }
         .barcode-search { display: flex; gap: 12px; flex-wrap: wrap; align-items: flex-end; }
+        .barcode-search .input-group { flex: 2; min-width: 250px; }
         .input-group { flex: 2; min-width: 200px; }
         .input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
         .input-group label .required { color: var(--danger); }
         .input-group input, .input-group select, .input-group textarea { width: 100%; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; transition: 0.2s; }
         .input-group input:focus, .input-group select:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(44,125,160,0.2); }
         .error-message { color: var(--danger); font-size: 0.7rem; margin-top: 4px; display: none; }
-        .table-container { background: var(--card); border-radius: 24px; overflow-x: auto; box-shadow: var(--shadow); margin-bottom: 28px; }
-        .product-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 1200px; }
-        .product-table th { background: var(--table-header); padding: 14px 10px; text-align: left; font-weight: 600; color: var(--primary); border-bottom: 2px solid var(--border); white-space: nowrap; }
-        .product-table td { padding: 12px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
-        .product-table tr:hover { background: rgba(var(--primary), 0.05); }
+        
+        .table-container {
+            background: var(--card);
+            border-radius: 24px;
+            overflow-x: auto;
+            box-shadow: var(--shadow);
+            margin-bottom: 28px;
+        }
+        .product-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.8rem;
+            min-width: 1000px;
+        }
+        .product-table th {
+            background: var(--table-header);
+            padding: 14px 10px;
+            text-align: left;
+            font-weight: 600;
+            color: var(--primary);
+            border: 1px solid var(--border);
+            white-space: nowrap;
+        }
+        .product-table td {
+            padding: 12px 10px;
+            vertical-align: middle;
+            border: 1px solid var(--border);
+        }
+        .product-table tr:hover {
+            background: rgba(var(--primary), 0.05);
+        }
+        
         .stock-badge, .expiry-badge { display: inline-block; padding: 4px 10px; border-radius: 40px; font-weight: 600; font-size: 0.7rem; }
         .stock-high { background: #c8e6c9; color: #2e7d32; }
         .stock-medium { background: #fff3e0; color: #ef6c00; }
@@ -114,6 +145,7 @@
         .batch-info { font-size: 0.7rem; background: var(--bg); border-radius: 12px; padding: 5px 8px; line-height: 1.4; cursor: pointer; transition: all 0.2s; }
         .batch-info:hover { background: var(--primary); color: white; }
         .badge-lote { background: var(--primary); color: white; padding: 2px 8px; border-radius: 20px; font-size: 0.65rem; font-weight: 600; display: inline-block; margin-bottom: 4px; }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
         .modal-content { background: var(--card); border-radius: 32px; width: 90%; max-width: 800px; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
         .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
@@ -152,6 +184,7 @@
         .button-group-step3 { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
         .precio-row { display: flex; gap: 12px; }
         .precio-row .input-group { flex: 1; }
+        .shortcut-hint { font-size: 0.7rem; color: var(--muted); margin-top: 8px; text-align: center; }
     </style>
 </head>
 <body>
@@ -162,6 +195,7 @@
             <p>Gestión de inventario con trazabilidad por lote</p>
         </div>
         <div class="header-actions">
+            <button class="btn btn-success" id="nuevoProductoBtnTop"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
             <button class="btn" id="modoOscuroBtn"><i class="fas fa-moon"></i> Modo</button>
             <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
         </div>
@@ -180,31 +214,59 @@
         <div class="filters-content" id="filtersContent">
             <div class="filters-grid">
                 <div class="filter-group"><label><i class="fas fa-tag"></i> Categoría</label><select id="filtroCategoria"><option value="">Todas las categorías</option></select></div>
-                <div class="filter-group"><label><i class="fas fa-box"></i> Formato de venta</label><select id="filtroFormato"><option value="">Todos los formatos</option><option value="Unidad">Unidad</option><option value="Paquete">Paquete</option><option value="Fardo">Fardo</option><option value="Caja">Caja</option><option value="Docena">Docena</option></select></div>
+                <div class="filter-group"><label><i class="fas fa-box"></i> Unidad de medida</label><select id="filtroUnidadMedida"><option value="">Todas</option><option value="Pieza">Pieza (unidad)</option><option value="Kilogramo">Kilogramo (kg)</option><option value="Gramo">Gramo (g)</option><option value="Litro">Litro (L)</option><option value="Mililitro">Mililitro (ml)</option><option value="Metro">Metro (m)</option><option value="Centímetro">Centímetro (cm)</option><option value="Paquete">Paquete</option><option value="Caja">Caja</option><option value="Fardo">Fardo</option><option value="Docena">Docena</option><option value="Bolsa">Bolsa</option><option value="Botella">Botella</option><option value="Lata">Lata</option></select></div>
                 <div class="filter-group"><label><i class="fas fa-chart-line"></i> Estado de stock</label><select id="filtroStock"><option value="">Todos</option><option value="bajo">Stock bajo (≤ mínimo)</option><option value="sin">Sin stock (=0)</option><option value="optimo">Stock óptimo (> mínimo)</option></select></div>
                 <div class="filter-group"><label><i class="fas fa-calendar-alt"></i> Estado de vencimiento</label><select id="filtroVencimiento"><option value="">Todos</option><option value="proximo">Próximos a vencer (≤7 días)</option><option value="vencido">Vencidos</option><option value="vigente">Vigentes (>7 días)</option></select></div>
                 <div class="filter-group"><label><i class="fas fa-building"></i> Proveedor</label><select id="filtroProveedor"><option value="">Todos los proveedores</option></select></div>
                 <div class="filter-group"><label><i class="fas fa-dollar-sign"></i> Rango de precio (USD)</label><div class="price-range"><input type="number" id="filtroPrecioMin" placeholder="Mín" step="0.01" min="0"><input type="number" id="filtroPrecioMax" placeholder="Máx" step="0.01" min="0"></div></div>
             </div>
-            <div class="filter-actions"><button class="btn" id="aplicarFiltrosBtn"><i class="fas fa-search"></i> Aplicar filtros</button><button class="btn-outline" id="limpiarFiltrosBtn"><i class="fas fa-eraser"></i> Limpiar filtros</button></div>
+            <div class="filter-actions">
+                <button class="btn" id="aplicarFiltrosBtn"><i class="fas fa-search"></i> Aplicar filtros</button>
+                <button class="btn-outline" id="limpiarFiltrosBtn"><i class="fas fa-eraser"></i> Limpiar filtros</button>
+            </div>
             <div id="filtrosStats" class="filters-stats"></div>
         </div>
     </div>
 
     <div class="search-panel">
-        <div class="search-title"><i class="fas fa-qrcode"></i><h2>Búsqueda rápida</h2></div>
+        <div class="search-title">
+            <i class="fas fa-qrcode"></i>
+            <h2>Búsqueda rápida</h2>
+            <div class="search-buttons">
+                <button class="btn btn-clear" id="limpiarTodoBtn"><i class="fas fa-trash-alt"></i> Limpiar todo</button>
+            </div>
+        </div>
         <div class="barcode-search">
-            <div class="input-group"><label><i class="fas fa-barcode"></i> Código / Nombre</label><input type="text" id="barcodeInput" placeholder="Código o nombre..." autocomplete="off"></div>
+            <div class="input-group">
+                <label><i class="fas fa-barcode"></i> Código / Nombre</label>
+                <input type="text" id="barcodeInput" placeholder="Escanea o escribe código/nombre..." autocomplete="off">
+                <div class="shortcut-hint"><i class="fas fa-keyboard"></i> Presiona <kbd>Enter</kbd> para buscar | <kbd>ESC</kbd> para limpiar todo</div>
+            </div>
             <button class="btn" id="buscarBarcodeBtn"><i class="fas fa-search"></i> Buscar</button>
-            <button class="btn btn-outline" id="limpiarBusqueda"><i class="fas fa-eraser"></i> Mostrar todos</button>
         </div>
         <div id="resultadoBusqueda" style="margin-top: 16px; font-weight: 500;"></div>
     </div>
 
     <div class="table-container">
         <table class="product-table">
-            <thead><tr><th>Código Barras</th><th>Producto</th><th>Categoría</th><th>Precio Venta</th><th>Precio Compra</th><th>Stock</th><th>Stock Mín.</th><th>Ubicación</th><th>Fecha Venc.</th><th>Lote</th><th>Acciones</th></tr></thead>
-            <tbody id="tableBody"><tr><td colspan="11" style="text-align:center">Cargando productos......</td></tr></tbody>
+            <thead>
+                <tr>
+                    <th>Código Barras</th>
+                    <th>Producto</th>
+                    <th>Precio Venta</th>
+                    <th>Precio Compra</th>
+                    <th>Stock</th>
+                    <th>Stock Mín.</th>
+                    <th>Ubicación</th>
+                    <th>Fecha Venc.</th>
+                    <th>Unidad / Formato</th>
+                    <th>Lote</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody id="tableBody">
+                <tr><td colspan="11" style="text-align:center">Cargando productos......</td><th响应
+            </tbody>
         </table>
     </div>
 
@@ -231,9 +293,26 @@
                     <div class="input-group"><label><span class="required">*</span> Nombre</label><input type="text" id="nombre" required><div class="error-message" id="error_nombre">El nombre es obligatorio</div></div>
                     <div class="input-group"><label><span class="required">*</span> Categoría</label><select id="categoria" required><option value="">Seleccionar</option></select><div class="error-message" id="error_categoria">Seleccione una categoría</div><button type="button" class="btn-outline btn-sm" id="nuevaCategoriaBtn" style="margin-top: 8px; width: 100%;">+ Nueva Categoría</button></div>
                     <div class="input-group"><label>Proveedor</label><input type="text" id="proveedor" placeholder="Nombre del proveedor"></div>
-                    <div class="input-group"><label>Formato de Venta</label><select id="formato_venta"><option value="Unidad">Unidad</option><option value="Paquete">Paquete</option><option value="Fardo">Fardo</option><option value="Caja">Caja</option><option value="Docena">Docena</option></select></div>
-                    <div class="input-group"><label><span class="required">*</span> Cantidad por Formato</label><input type="number" id="cantidad_formato" value="1" min="1"><div class="error-message" id="error_cantidad_formato">Debe ser al menos 1</div></div>
-                    <div class="input-group"><label>Unidad medida</label><select id="unidad_medida"><option value="">Seleccionar unidad</option><option value="pieza">Pieza (unidad)</option><option value="kilogramo">Kilogramo (kg)</option><option value="gramo">Gramo (g)</option><option value="litro">Litro (L)</option><option value="mililitro">Mililitro (ml)</option><option value="metro">Metro (m)</option><option value="centimetro">Centímetro (cm)</option><option value="caja">Caja</option><option value="paquete">Paquete</option><option value="docena">Docena</option><option value="fardo">Fardo</option></select></div>
+                    <div class="input-group"><label><span class="required">*</span> Unidad / Formato de venta</label>
+                        <select id="unidad_medida" required>
+                            <option value="">Seleccionar</option>
+                            <option value="Pieza">Pieza (unidad)</option>
+                            <option value="Kilogramo">Kilogramo (kg)</option>
+                            <option value="Gramo">Gramo (g)</option>
+                            <option value="Litro">Litro (L)</option>
+                            <option value="Mililitro">Mililitro (ml)</option>
+                            <option value="Metro">Metro (m)</option>
+                            <option value="Centímetro">Centímetro (cm)</option>
+                            <option value="Paquete">Paquete</option>
+                            <option value="Caja">Caja</option>
+                            <option value="Fardo">Fardo</option>
+                            <option value="Docena">Docena</option>
+                            <option value="Bolsa">Bolsa</option>
+                            <option value="Botella">Botella</option>
+                            <option value="Lata">Lata</option>
+                        </select>
+                    </div>
+                    <div class="input-group"><label><span class="required">*</span> Cantidad por unidad</label><input type="number" id="cantidad_por_unidad" value="1" min="1"><div class="error-message" id="error_cantidad_por_unidad">Debe ser al menos 1</div><small>Ej: Si es Paquete de 6, poner 6</small></div>
                     <div class="input-group"><label>Ubicación</label><input type="text" id="ubicacion" placeholder="Pasillo-Estante"></div>
                     <div class="input-group full-width"><label>Descripción</label><textarea id="descripcion" rows="2"></textarea></div>
                 </div>
@@ -340,8 +419,9 @@
     const tableBody = document.getElementById('tableBody');
     const barcodeInput = document.getElementById('barcodeInput');
     const buscarBtn = document.getElementById('buscarBarcodeBtn');
-    const limpiarBtn = document.getElementById('limpiarBusqueda');
+    const limpiarTodoBtn = document.getElementById('limpiarTodoBtn');
     const nuevoBtn = document.getElementById('nuevoProductoBtn');
+    const nuevoBtnTop = document.getElementById('nuevoProductoBtnTop');
     const modal = document.getElementById('productModal');
     const agregarLoteModal = document.getElementById('agregarLoteModal');
     const loteModal = document.getElementById('loteModal');
@@ -350,7 +430,7 @@
     
     // Filtros
     const filtroCategoria = document.getElementById('filtroCategoria');
-    const filtroFormato = document.getElementById('filtroFormato');
+    const filtroUnidadMedida = document.getElementById('filtroUnidadMedida');
     const filtroStock = document.getElementById('filtroStock');
     const filtroVencimiento = document.getElementById('filtroVencimiento');
     const filtroProveedor = document.getElementById('filtroProveedor');
@@ -443,16 +523,19 @@
         const codigoBarras = document.getElementById('codigo_barras');
         const nombre = document.getElementById('nombre');
         const categoria = document.getElementById('categoria');
-        const cantidadFormato = document.getElementById('cantidad_formato');
+        const unidadMedida = document.getElementById('unidad_medida');
+        const cantidadPorUnidad = document.getElementById('cantidad_por_unidad');
         if (!codigoBarras.value.trim()) { codigoBarras.classList.add('error'); document.getElementById('error_codigo_barras').style.display = 'block'; isValid = false; }
         else { codigoBarras.classList.remove('error'); document.getElementById('error_codigo_barras').style.display = 'none'; }
         if (!nombre.value.trim()) { nombre.classList.add('error'); document.getElementById('error_nombre').style.display = 'block'; isValid = false; }
         else { nombre.classList.remove('error'); document.getElementById('error_nombre').style.display = 'none'; }
         if (!categoria.value) { categoria.classList.add('error'); document.getElementById('error_categoria').style.display = 'block'; isValid = false; }
         else { categoria.classList.remove('error'); document.getElementById('error_categoria').style.display = 'none'; }
-        const cantFormato = parseInt(cantidadFormato.value);
-        if (isNaN(cantFormato) || cantFormato < 1) { cantidadFormato.classList.add('error'); document.getElementById('error_cantidad_formato').style.display = 'block'; isValid = false; }
-        else { cantidadFormato.classList.remove('error'); document.getElementById('error_cantidad_formato').style.display = 'none'; }
+        if (!unidadMedida.value) { unidadMedida.classList.add('error'); document.getElementById('error_unidad_medida').style.display = 'block'; isValid = false; }
+        else { unidadMedida.classList.remove('error'); document.getElementById('error_unidad_medida').style.display = 'none'; }
+        const cantUnidad = parseInt(cantidadPorUnidad.value);
+        if (isNaN(cantUnidad) || cantUnidad < 1) { cantidadPorUnidad.classList.add('error'); document.getElementById('error_cantidad_por_unidad').style.display = 'block'; isValid = false; }
+        else { cantidadPorUnidad.classList.remove('error'); document.getElementById('error_cantidad_por_unidad').style.display = 'none'; }
         return isValid;
     }
     
@@ -497,8 +580,11 @@
 
     function getExpiryStatus(fechaVencimiento) {
         if (!fechaVencimiento) return { text: '<span class="expiry-badge">—</span>', status: 'ninguno', days: null };
-        const today = new Date(); today.setHours(0, 0, 0, 0);
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
         const expiryDate = new Date(fechaVencimiento);
+        if (isNaN(expiryDate.getTime())) return { text: '<span class="expiry-badge">—</span>', status: 'ninguno', days: null };
+        
         const days = Math.ceil((expiryDate - today) / (1000 * 60 * 60 * 24));
         if (days < 0) return { text: '<span class="expiry-badge expired">VENCIDO</span>', status: 'vencido', days: days };
         if (days <= 7) return { text: `<span class="expiry-badge expiry-soon">Vence en ${days} días</span>`, status: 'proximo', days: days };
@@ -527,8 +613,8 @@
         if (textoBusqueda) filtrados = filtrados.filter(p => p.codigo_barras?.toLowerCase().includes(textoBusqueda) || p.nombre?.toLowerCase().includes(textoBusqueda));
         const cat = filtroCategoria.value;
         if (cat) filtrados = filtrados.filter(p => p.categoria === cat);
-        const fmt = filtroFormato.value;
-        if (fmt) filtrados = filtrados.filter(p => p.formato_venta === fmt);
+        const unidad = filtroUnidadMedida.value;
+        if (unidad) filtrados = filtrados.filter(p => p.unidad_medida === unidad);
         const prov = filtroProveedor.value;
         if (prov) filtrados = filtrados.filter(p => p.proveedor === prov);
         const precioMin = parseFloat(filtroPrecioMin.value);
@@ -554,7 +640,7 @@
 
     function limpiarFiltros() {
         filtroCategoria.value = '';
-        filtroFormato.value = '';
+        filtroUnidadMedida.value = '';
         filtroStock.value = '';
         filtroVencimiento.value = '';
         filtroProveedor.value = '';
@@ -567,8 +653,26 @@
         document.getElementById('resultadoBusqueda').innerHTML = '';
     }
 
+    function limpiarTodo() {
+        limpiarFiltros();
+        barcodeInput.value = '';
+        document.getElementById('resultadoBusqueda').innerHTML = '';
+        aplicarFiltros();
+        barcodeInput.focus();
+    }
+
     async function renderTabla(productosArray) {
-        if (!productosArray.length) { tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center">📭 No hay productos registrados</td></tr>'; return; }
+        if (!productosArray.length) { 
+            tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center">📭 No hay productos registrados</td></tr>'; 
+            return; 
+        }
+        
+        for (let p of productosArray) {
+            if (!lotesPorProducto[p.id]) {
+                await cargarLotesProducto(p.id);
+            }
+        }
+        
         tableBody.innerHTML = productosArray.map(p => {
             const lotes = lotesPorProducto[p.id] || [];
             let fechaVencimientoProducto = null;
@@ -580,16 +684,19 @@
                 loteHtml = `<div class="batch-info" onclick="abrirEditarLote(${lotePrincipal.id}, ${p.id})" title="Haz clic para editar este lote"><span class="badge-lote">${escapeHtml(lotePrincipal.numero_lote || 'N/L')}</span><br>${lotePrincipal.cantidad} uds | ${fechaVenc}</div>`;
             }
             const expiryStatus = getExpiryStatus(fechaVencimientoProducto).text;
+            const unidadFormato = `${p.unidad_medida || '?'} x${p.cantidad_por_unidad || 1}`;
+            
+            // AHORA SON EXACTAMENTE 11 COLUMNAS (coincide con los th)
             return `<tr>
                 <td><code>${escapeHtml(p.codigo_barras || '—')}</code></td>
-                <td><strong>${escapeHtml(p.nombre)}</strong><br><small>${escapeHtml(p.formato_venta || 'Unidad')} x${p.cantidad_formato || 1}</small></td>
-                <td>${escapeHtml(p.categoria)}</td>
+                <td><strong>${escapeHtml(p.nombre)}</strong><br><small>${escapeHtml(p.categoria || '—')}</small></td>
                 <td>$${Number(p.precio_venta).toFixed(2)}</td>
                 <td>$${Number(p.precio_compra || 0).toFixed(2)}</td>
                 <td>${Number(p.stock)} ${getStockBadge(Number(p.stock), Number(p.stock_minimo))}</td>
                 <td>${Number(p.stock_minimo)}</td>
                 <td><i class="fas fa-map-marker-alt"></i> ${escapeHtml(p.ubicacion || 'N/A')}</td>
                 <td>${expiryStatus}</td>
+                <td><small>${escapeHtml(unidadFormato)}</small></td>
                 <td>${loteHtml}</td>
                 <td class="action-buttons">
                     <button class="btn-view" onclick="verDetallesCompletos(${p.id})"><i class="fas fa-eye"></i> Ver</button>
@@ -619,6 +726,8 @@
         if (expiringSoon.length > 0) {
             document.getElementById('expiryAlert').style.display = 'flex';
             document.getElementById('alertMessage').innerHTML = `<strong>⚠️ Alertas:</strong> ${expiringSoon.slice(0,3).join(' | ')}${expiringSoon.length>3?' ...':''}`;
+        } else {
+            document.getElementById('expiryAlert').style.display = 'none';
         }
     }
 
@@ -627,15 +736,14 @@
         if (!producto) return;
         const lotes = lotesPorProducto[id] || [];
         const lotesHtml = lotes.length ? lotes.map(l => `<div class="batch-item"><div class="batch-info-text"><strong>Lote:</strong> ${l.numero_lote || 'N/A'}<br><strong>Cantidad:</strong> ${l.cantidad}<br><strong>Precio compra:</strong> $${l.precio_compra}<br><strong>Vence:</strong> ${l.fecha_vencimiento ? new Date(l.fecha_vencimiento).toLocaleDateString() : 'N/A'}<br><strong>Entrada:</strong> ${new Date(l.fecha_entrada).toLocaleDateString()}</div></div>`).join('') : '<p>No hay lotes registrados</p>';
+        const unidadFormato = `${producto.unidad_medida || '?'} x${producto.cantidad_por_unidad || 1}`;
         document.getElementById('detallesContent').innerHTML = `
             <div class="details-grid">
                 <div class="detail-card"><div class="detail-label">Código Barras</div><div class="detail-value">${escapeHtml(producto.codigo_barras || '—')}</div></div>
                 <div class="detail-card"><div class="detail-label">Producto</div><div class="detail-value"><strong>${escapeHtml(producto.nombre)}</strong></div></div>
                 <div class="detail-card"><div class="detail-label">Categoría</div><div class="detail-value">${escapeHtml(producto.categoria)}</div></div>
                 <div class="detail-card"><div class="detail-label">Proveedor</div><div class="detail-value">${escapeHtml(producto.proveedor || '—')}</div></div>
-                <div class="detail-card"><div class="detail-label">Formato Venta</div><div class="detail-value">${escapeHtml(producto.formato_venta || 'Unidad')}</div></div>
-                <div class="detail-card"><div class="detail-label">Cantidad por Formato</div><div class="detail-value">${producto.cantidad_formato || 1}</div></div>
-                <div class="detail-card"><div class="detail-label">Unidad Medida</div><div class="detail-value">${escapeHtml(producto.unidad_medida || '—')}</div></div>
+                <div class="detail-card"><div class="detail-label">Unidad / Formato</div><div class="detail-value">${escapeHtml(unidadFormato)}</div></div>
                 <div class="detail-card"><div class="detail-label">Ubicación</div><div class="detail-value">${escapeHtml(producto.ubicacion || '—')}</div></div>
                 <div class="detail-card"><div class="detail-label">Precio Compra</div><div class="detail-value">$${Number(producto.precio_compra || 0).toFixed(2)}</div></div>
                 <div class="detail-card"><div class="detail-label">Precio Venta</div><div class="detail-value">$${Number(producto.precio_venta).toFixed(2)}</div></div>
@@ -672,7 +780,7 @@
     window.abrirAgregarLoteDesdeTabla = async (productoId) => {
         const productoOriginal = productos.find(p => p.id === productoId);
         if (!productoOriginal) return;
-        const resumenHtml = `<i class="fas fa-info-circle"></i> <strong>Producto base:</strong><br>📦 ${escapeHtml(productoOriginal.nombre)}<br>🔢 Código: ${escapeHtml(productoOriginal.codigo_barras)}<br>📁 Categoría: ${escapeHtml(productoOriginal.categoria)}<br>💰 Precio venta: $${productoOriginal.precio_venta} | Precio compra: $${productoOriginal.precio_compra}<br>📏 Formato: ${productoOriginal.formato_venta} x ${productoOriginal.cantidad_formato}`;
+        const resumenHtml = `<i class="fas fa-info-circle"></i> <strong>Producto base:</strong><br>📦 ${escapeHtml(productoOriginal.nombre)}<br>🔢 Código: ${escapeHtml(productoOriginal.codigo_barras)}<br>📁 Categoría: ${escapeHtml(productoOriginal.categoria)}<br>💰 Precio venta: $${productoOriginal.precio_venta} | Precio compra: $${productoOriginal.precio_compra}<br>📏 Unidad/Formato: ${productoOriginal.unidad_medida} x${productoOriginal.cantidad_por_unidad}`;
         document.getElementById('resumenProductoBase').innerHTML = resumenHtml;
         document.getElementById('nuevoProductoBaseId').value = productoId;
         document.getElementById('nuevoLoteNumero').value = '';
@@ -698,11 +806,12 @@
         const productoBase = productos.find(p => p.id === productoBaseId);
         if (!productoBase) return;
         
-        let nuevoFormato = productoBase.formato_venta;
-        let nuevaCantidadFormato = productoBase.cantidad_formato;
-        if (productoBase.formato_venta === 'Unidad') { nuevoFormato = 'Paquete'; nuevaCantidadFormato = 6; }
-        else if (productoBase.formato_venta === 'Paquete') { nuevoFormato = 'Caja'; nuevaCantidadFormato = 24; }
-        else { nuevoFormato = 'Unidad'; nuevaCantidadFormato = 1; }
+        let nuevoFormato = productoBase.unidad_medida;
+        let nuevaCantidad = productoBase.cantidad_por_unidad;
+        if (productoBase.unidad_medida === 'Pieza') { nuevoFormato = 'Paquete'; nuevaCantidad = 6; }
+        else if (productoBase.unidad_medida === 'Paquete') { nuevoFormato = 'Caja'; nuevaCantidad = 24; }
+        else if (productoBase.unidad_medida === 'Botella') { nuevoFormato = 'Caja'; nuevaCantidad = 12; }
+        else { nuevoFormato = 'Pieza'; nuevaCantidad = 1; }
         
         const nuevoPrecioCompraInput = document.getElementById('nuevoLotePrecioCompra').value;
         const nuevoPrecioVentaInput = document.getElementById('nuevoLotePrecioVenta').value;
@@ -718,11 +827,10 @@
             precio_venta: precioVentaFinal,
             stock: cantidad,
             stock_minimo: productoBase.stock_minimo,
-            unidad_medida: productoBase.unidad_medida,
+            unidad_medida: nuevoFormato,
+            cantidad_por_unidad: nuevaCantidad,
             proveedor: productoBase.proveedor,
             ubicacion: productoBase.ubicacion,
-            formato_venta: nuevoFormato,
-            cantidad_formato: nuevaCantidadFormato,
             fecha_vencimiento: document.getElementById('nuevoLoteFechaVencimiento').value || null
         };
         
@@ -742,7 +850,7 @@
         const resLote = await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
         const dataLote = await resLote.json();
         if (dataLote.ok) {
-            alert(`✅ Producto creado exitosamente!\n\n📦 ${productoBase.nombre}\n📏 Formato: ${nuevoFormato} x ${nuevaCantidadFormato}\n💰 Precio compra: $${precioCompraFinal}\n💰 Precio venta: $${precioVentaFinal}\n🔢 Lote: ${numeroLote}\n📊 Stock inicial: ${cantidad} unidades`);
+            alert(`✅ Producto creado exitosamente!\n\n📦 ${productoBase.nombre}\n📏 Formato: ${nuevoFormato} x ${nuevaCantidad}\n💰 Precio compra: $${precioCompraFinal}\n💰 Precio venta: $${precioVentaFinal}\n🔢 Lote: ${numeroLote}\n📊 Stock inicial: ${cantidad} unidades`);
             agregarLoteModal.style.display = 'none';
             agregarLoteForm.reset();
             await cargarProductos();
@@ -764,22 +872,38 @@
     loteForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!validarLoteData()) return;
+        
         const loteId = document.getElementById('loteId').value;
         const productoId = parseInt(document.getElementById('loteProductoId').value);
         const cantidad = parseInt(document.getElementById('loteCantidad').value);
         const fechaVencimiento = document.getElementById('loteFechaVencimiento').value || null;
         const precioCompra = parseFloat(document.getElementById('lotePrecioCompra').value) || null;
         const numeroLote = document.getElementById('loteNumero').value.trim();
-        const loteData = { producto_id: productoId, cantidad: cantidad, fecha_vencimiento: fechaVencimiento, precio_compra: precioCompra, numero_lote: numeroLote };
-        const res = await fetch(`${API_URL}/batches/${loteId}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
+        
+        const loteData = { 
+            producto_id: productoId, 
+            cantidad: cantidad, 
+            fecha_vencimiento: fechaVencimiento, 
+            precio_compra: precioCompra, 
+            numero_lote: numeroLote 
+        };
+        
+        const res = await fetch(`${API_URL}/batches/${loteId}`, { 
+            method: 'PUT', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(loteData) 
+        });
         const data = await res.json();
+        
         if (data.ok) { 
             alert('✅ Lote actualizado');
             await cargarLotesProducto(productoId);
             await cargarProductos();
             loteModal.style.display = 'none'; 
             loteForm.reset();
-        } else { alert('❌ Error: ' + (data.error || 'No se pudo procesar')); }
+        } else { 
+            alert('❌ Error: ' + (data.error || 'No se pudo procesar')); 
+        }
     });
 
     async function cargarProductos() {
@@ -828,13 +952,6 @@
         document.getElementById('resultadoBusqueda').innerHTML = filtered.length ? `<span style="color:var(--success)">🔍 ${filtered.length} resultado(s)</span>` : `<span style="color:var(--danger)">❌ No encontrado</span>`;
     }
 
-    function limpiarBusqueda() {
-        barcodeInput.value = '';
-        document.getElementById('resultadoBusqueda').innerHTML = '';
-        limpiarFiltros();
-    }
-
-    // ======================= FORMULARIO PRINCIPAL CORREGIDO =======================
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!validateStep1() || !validateStep2()) {
@@ -862,15 +979,13 @@
             precio_venta: parseFloat(document.getElementById('precio_venta').value) || 0,
             stock_minimo: parseInt(document.getElementById('stock_minimo').value) || 0,
             unidad_medida: document.getElementById('unidad_medida').value,
+            cantidad_por_unidad: parseInt(document.getElementById('cantidad_por_unidad').value) || 1,
             proveedor: document.getElementById('proveedor').value,
             ubicacion: document.getElementById('ubicacion').value,
             descripcion: document.getElementById('descripcion').value,
-            formato_venta: document.getElementById('formato_venta').value,
-            cantidad_formato: parseInt(document.getElementById('cantidad_formato').value) || 1,
             fecha_vencimiento: fechaVencimientoLote
         };
         
-        // IMPORTANTE: Solo enviar stock cuando es NUEVO producto
         if (!id) {
             payload.stock = cantidadLote;
         }
@@ -878,14 +993,12 @@
         let res, productoId;
         
         if (id) {
-            // Actualizar producto (sin stock)
             res = await fetch(`${API_URL}/products/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await res.json();
             if (!data.ok) { alert('❌ Error al actualizar producto: ' + (data.error || '')); return; }
             productoId = parseInt(id);
             
             if (loteIdExistente) {
-                // Actualizar lote existente - el servidor maneja la diferencia de stock
                 const loteData = { 
                     producto_id: productoId, 
                     cantidad: cantidadLote, 
@@ -896,7 +1009,6 @@
                 await fetch(`${API_URL}/batches/${loteIdExistente}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
                 alert('✅ Producto actualizado y lote actualizado');
             } else {
-                // Crear nuevo lote para producto existente
                 const loteData = { 
                     producto_id: productoId, 
                     cantidad: cantidadLote, 
@@ -908,7 +1020,6 @@
                 alert('✅ Producto actualizado y nuevo lote registrado');
             }
         } else {
-            // Crear nuevo producto (con stock incluido)
             payload.stock = cantidadLote;
             res = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
             const data = await res.json();
@@ -941,11 +1052,10 @@
         document.getElementById('precio_venta').value = '';
         document.getElementById('stock_minimo').value = '5';
         document.getElementById('unidad_medida').value = '';
+        document.getElementById('cantidad_por_unidad').value = '1';
         document.getElementById('proveedor').value = '';
         document.getElementById('ubicacion').value = '';
         document.getElementById('descripcion').value = '';
-        document.getElementById('formato_venta').value = 'Unidad';
-        document.getElementById('cantidad_formato').value = '1';
         document.getElementById('loteNumeroTemp').value = '';
         document.getElementById('loteCantidadTemp').value = '';
         document.getElementById('loteFechaVencimientoTemp').value = '';
@@ -967,11 +1077,10 @@
         document.getElementById('precio_venta').value = p.precio_venta;
         document.getElementById('stock_minimo').value = p.stock_minimo;
         document.getElementById('unidad_medida').value = p.unidad_medida || '';
+        document.getElementById('cantidad_por_unidad').value = p.cantidad_por_unidad || 1;
         document.getElementById('proveedor').value = p.proveedor || '';
         document.getElementById('ubicacion').value = p.ubicacion || '';
         document.getElementById('descripcion').value = p.descripcion || '';
-        document.getElementById('formato_venta').value = p.formato_venta || 'Unidad';
-        document.getElementById('cantidad_formato').value = p.cantidad_formato || 1;
         
         const lotes = lotesPorProducto[id] || [];
         if (lotes.length > 0) {
@@ -998,12 +1107,16 @@
     };
 
     window.eliminarProducto = async (id, nombre) => {
-        if (!confirm(`¿Eliminar permanentemente "${nombre}"?\nEsta acción también eliminará todos los lotes asociados.`)) return;
+        if (!confirm(`¿Eliminar permanentemente "${nombre}"?\nEsta acción también eliminará todos los lotes asociados y los detalles de venta.`)) return;
         try {
             const res = await fetch(`${API_URL}/products/${id}`, { method: 'DELETE' });
             const data = await res.json();
-            if (data.ok) { await cargarProductos(); alert('✅ Producto eliminado'); } 
-            else alert('❌ Error al eliminar');
+            if (data.ok) { 
+                await cargarProductos(); 
+                alert('✅ Producto eliminado'); 
+            } else { 
+                alert('❌ Error al eliminar: ' + (data.error || '')); 
+            }
         } catch(e) { alert('❌ Error al eliminar'); }
     };
 
@@ -1018,14 +1131,33 @@
     });
 
     buscarBtn.addEventListener('click', () => buscarPorCodigo(barcodeInput.value));
-    limpiarBtn.addEventListener('click', limpiarBusqueda);
+    limpiarTodoBtn.addEventListener('click', limpiarTodo);
     aplicarFiltrosBtn.addEventListener('click', aplicarFiltros);
     limpiarFiltrosBtn.addEventListener('click', limpiarFiltros);
     
-    nuevoBtn.addEventListener('click', () => { limpiarFormularioProducto(); modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto'; modal.style.display = 'flex'; });
+    function abrirNuevoProducto() {
+        limpiarFormularioProducto();
+        modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto';
+        modal.style.display = 'flex';
+    }
+    nuevoBtn.addEventListener('click', abrirNuevoProducto);
+    nuevoBtnTop.addEventListener('click', abrirNuevoProducto);
+    
     nuevaCategoriaBtn.addEventListener('click', () => categoriaModal.style.display = 'flex');
     
-    const inputs = ['codigo_barras', 'nombre', 'categoria', 'cantidad_formato', 'precio_compra', 'precio_venta', 'stock_minimo', 'loteNumeroTemp', 'loteCantidadTemp'];
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            limpiarTodo();
+        }
+    });
+    
+    barcodeInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            buscarPorCodigo(barcodeInput.value);
+        }
+    });
+    
+    const inputs = ['codigo_barras', 'nombre', 'categoria', 'cantidad_por_unidad', 'precio_compra', 'precio_venta', 'stock_minimo', 'loteNumeroTemp', 'loteCantidadTemp'];
     inputs.forEach(id => {
         const input = document.getElementById(id);
         if (input) {
@@ -1060,7 +1192,6 @@
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }
     if (localStorage.getItem('modoSupermercado') === 'true') { document.body.classList.add('dark'); modoBtn.innerHTML = '<i class="fas fa-sun"></i> Claro'; }
     modoBtn.addEventListener('click', toggleModo);
-    barcodeInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') buscarPorCodigo(barcodeInput.value); });
 
     initFiltersCollapse();
     cargarCategorias();
