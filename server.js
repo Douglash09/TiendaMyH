@@ -75,6 +75,7 @@ function crearTablaProductos() {
             proveedor VARCHAR(100),
             ubicacion VARCHAR(50),
             fecha_vencimiento DATE,
+            imagen LONGTEXT,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
             INDEX idx_codigo_barras (codigo_barras),
@@ -87,6 +88,29 @@ function crearTablaProductos() {
             console.error("❌ Error creando tabla productos:", err.message);
         } else {
             console.log("✅ Tabla productos lista");
+            agregarColumnaImagenSiNoExiste();
+        }
+    });
+}
+
+function agregarColumnaImagenSiNoExiste() {
+    db.query("SHOW COLUMNS FROM productos LIKE 'imagen'", (err, result) => {
+        if (err) {
+            console.error("❌ Error verificando columna imagen:", err.message);
+            return;
+        }
+        
+        if (result.length === 0) {
+            const sql = `ALTER TABLE productos ADD COLUMN imagen LONGTEXT`;
+            db.query(sql, (err) => {
+                if (err) {
+                    console.error("❌ Error agregando columna imagen:", err.message);
+                } else {
+                    console.log("✅ Columna imagen agregada correctamente");
+                }
+            });
+        } else {
+            console.log("✅ Columna imagen ya existe");
         }
     });
 }
@@ -117,7 +141,7 @@ function crearTablaLotes() {
 }
 
 // ===== MIDDLEWARES =====
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
 app.use(express.static(__dirname));
 
 // =============================================
@@ -149,7 +173,8 @@ app.post('/api/products', (req, res) => {
     const { 
         codigo_barras, nombre, descripcion, categoria, 
         precio_compra, precio_venta, stock, stock_minimo, 
-        unidad_medida, cantidad_por_unidad, proveedor, ubicacion, fecha_vencimiento 
+        unidad_medida, cantidad_por_unidad, proveedor, ubicacion, fecha_vencimiento,
+        imagen
     } = req.body;
     
     let fechaFormateada = null;
@@ -162,15 +187,16 @@ app.post('/api/products', (req, res) => {
     
     const sql = `INSERT INTO productos 
         (codigo_barras, nombre, descripcion, categoria, precio_compra, precio_venta, 
-         stock, stock_minimo, unidad_medida, cantidad_por_unidad, proveedor, ubicacion, fecha_vencimiento)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+         stock, stock_minimo, unidad_medida, cantidad_por_unidad, proveedor, ubicacion, fecha_vencimiento, imagen)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
     
     db.query(sql, [
         codigo_barras, nombre, descripcion, categoria, 
         precio_compra || 0, precio_venta || 0, 
         stock || 0, stock_minimo || 5, 
         unidad_medida || 'Pieza', cantidad_por_unidad || 1, 
-        proveedor, ubicacion, fechaFormateada
+        proveedor, ubicacion, fechaFormateada,
+        imagen || null
     ], (err, result) => {
         if (err) {
             console.error("Error creando producto:", err);
@@ -182,15 +208,7 @@ app.post('/api/products', (req, res) => {
 
 app.put('/api/products/:id', (req, res) => {
     const { id } = req.params;
-    let updates = req.body;
-    
-    if (updates.cantidad_formato !== undefined && updates.cantidad_por_unidad === undefined) {
-        updates.cantidad_por_unidad = updates.cantidad_formato;
-        delete updates.cantidad_formato;
-    }
-    if (updates.formato_venta !== undefined) {
-        delete updates.formato_venta;
-    }
+    const updates = req.body;
     
     const fields = [];
     const values = [];
@@ -207,7 +225,10 @@ app.put('/api/products/:id', (req, res) => {
                     fields.push(`${key}=?`);
                     values.push(null);
                 }
-            } else if (key !== 'formato_venta' && key !== 'cantidad_formato') {
+            } else if (key === 'imagen') {
+                fields.push(`${key}=?`);
+                values.push(updates[key] || null);
+            } else if (key !== 'formato_venta' && key !== 'cantidad_formato' && key !== 'stock') {
                 fields.push(`${key}=?`);
                 values.push(updates[key]);
             }
@@ -221,7 +242,7 @@ app.put('/api/products/:id', (req, res) => {
     values.push(id);
     const sql = `UPDATE productos SET ${fields.join(', ')} WHERE id=?`;
     
-    db.query(sql, values, (err) => {
+    db.query(sql, values, (err, result) => {
         if (err) {
             console.error("Error actualizando producto:", err);
             return res.status(500).json({ ok: false, error: err.message });
@@ -230,25 +251,15 @@ app.put('/api/products/:id', (req, res) => {
     });
 });
 
-// ELIMINAR PRODUCTO - Ahora con CASCADE se elimina todo automáticamente
 app.delete('/api/products/:id', (req, res) => {
     const { id } = req.params;
     
-    // Primero obtener los lotes para actualizar stock si es necesario
-    db.query('SELECT * FROM lotes WHERE producto_id = ?', [id], (err, lotes) => {
+    db.query('DELETE FROM productos WHERE id=?', [id], (err) => {
         if (err) {
-            console.error("Error obteniendo lotes:", err);
+            console.error("Error eliminando producto:", err);
             return res.status(500).json({ ok: false, error: err.message });
         }
-        
-        // Eliminar el producto (los lotes se eliminan por CASCADE)
-        db.query('DELETE FROM productos WHERE id=?', [id], (err) => {
-            if (err) {
-                console.error("Error eliminando producto:", err);
-                return res.status(500).json({ ok: false, error: err.message });
-            }
-            res.json({ ok: true, message: "Producto eliminado exitosamente" });
-        });
+        res.json({ ok: true, message: "Producto eliminado exitosamente" });
     });
 });
 
@@ -336,7 +347,6 @@ app.post('/api/batches', (req, res) => {
             return res.status(500).json({ ok: false, error: err.message });
         }
         
-        // Actualizar la fecha de vencimiento del producto (solo si es más próxima)
         const sqlUpdateFecha = `UPDATE productos SET fecha_vencimiento = ? 
             WHERE id = ? AND (fecha_vencimiento IS NULL OR fecha_vencimiento > ?)`;
         db.query(sqlUpdateFecha, [fechaFormateada, producto_id, fechaFormateada], (err) => {
@@ -349,7 +359,6 @@ app.post('/api/batches', (req, res) => {
     });
 });
 
-// ACTUALIZAR LOTE - Actualiza fecha del producto correctamente
 app.put('/api/batches/:id', (req, res) => {
     const loteId = req.params.id;
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
@@ -387,7 +396,6 @@ app.put('/api/batches/:id', (req, res) => {
                     });
                 }
                 
-                // Actualizar stock si hay diferencia
                 if (diferenciaCantidad !== 0) {
                     db.query('UPDATE productos SET stock = stock + ? WHERE id = ?', [diferenciaCantidad, producto_id], (err) => {
                         if (err) {
@@ -397,7 +405,6 @@ app.put('/api/batches/:id', (req, res) => {
                             });
                         }
                         
-                        // Actualizar fecha del producto con la fecha más próxima de todos los lotes
                         const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
                         db.query(sqlGetMinFecha, [producto_id], (err, result) => {
                             if (err) {
@@ -422,7 +429,6 @@ app.put('/api/batches/:id', (req, res) => {
                         });
                     });
                 } else {
-                    // Solo actualizar fecha si no cambió la cantidad
                     const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
                     db.query(sqlGetMinFecha, [producto_id], (err, result) => {
                         if (err) {
@@ -777,6 +783,7 @@ app.listen(PORT, () => {
     ║   💵 Moneda: USD ($)                              ║
     ║   ✅ Productos: Se pueden eliminar (CASCADE)      ║
     ║   ✅ Fechas: Se actualizan al editar lote         ║
+    ║   📸 Imágenes: Soporte para fotos opcionales      ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });

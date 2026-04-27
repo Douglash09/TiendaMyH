@@ -136,6 +136,183 @@
             background: rgba(var(--primary), 0.05);
         }
         
+        .product-image {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: var(--bg);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        .product-image:hover {
+            transform: scale(1.15);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+        .product-image-placeholder {
+            width: 60px;
+            height: 60px;
+            background: var(--bg);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 1.8rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px dashed var(--border);
+        }
+        .product-image-placeholder:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: scale(1.05);
+        }
+        .product-image-large {
+            max-width: 300px;
+            max-height: 300px;
+            border-radius: 16px;
+            object-fit: cover;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+        }
+        .image-preview {
+            margin-top: 10px;
+            padding: 10px;
+            background: var(--bg);
+            border-radius: 12px;
+            text-align: center;
+        }
+        .image-preview img {
+            max-width: 150px;
+            max-height: 150px;
+            border-radius: 8px;
+        }
+        .btn-remove-image {
+            background: var(--danger);
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            cursor: pointer;
+            margin-top: 8px;
+        }
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: 12px;
+            padding: 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: var(--bg);
+        }
+        
+        .image-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.95);
+            justify-content: center;
+            align-items: center;
+            z-index: 1100;
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        .image-modal-content {
+            position: relative;
+            max-width: 90%;
+            max-height: 90%;
+            text-align: center;
+        }
+        .image-modal img {
+            max-width: 100%;
+            max-height: 85vh;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            animation: zoomIn 0.3s ease;
+        }
+        @keyframes zoomIn {
+            from { transform: scale(0.9); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+        .image-modal-close {
+            position: absolute;
+            top: -40px;
+            right: -40px;
+            color: white;
+            font-size: 40px;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: rgba(0,0,0,0.5);
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .image-modal-close:hover {
+            transform: scale(1.1);
+            background: rgba(0,0,0,0.8);
+        }
+        .image-modal-caption {
+            position: absolute;
+            bottom: -40px;
+            left: 0;
+            right: 0;
+            color: white;
+            text-align: center;
+            font-size: 1rem;
+            background: rgba(0,0,0,0.5);
+            padding: 8px;
+            border-radius: 8px;
+        }
+        
+        .product-search-card {
+            background: var(--card);
+            border-radius: 16px;
+            padding: 16px;
+            margin-top: 16px;
+            box-shadow: var(--shadow);
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from { transform: translateY(-20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+        .product-search-card img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border-radius: 12px;
+        }
+        .product-search-card .product-search-info {
+            flex: 1;
+        }
+        .product-search-card .product-search-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+        .product-search-card .product-search-details {
+            font-size: 0.8rem;
+            color: var(--muted);
+        }
+        
         .stock-badge, .expiry-badge { display: inline-block; padding: 4px 10px; border-radius: 40px; font-weight: 600; font-size: 0.7rem; }
         .stock-high { background: #c8e6c9; color: #2e7d32; }
         .stock-medium { background: #fff3e0; color: #ef6c00; }
@@ -178,7 +355,6 @@
         .btn-view { background: var(--info); color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: 600; }
         .btn-add-lote { background: var(--success); color: white; border: none; padding: 6px 12px; border-radius: 20px; cursor: pointer; font-size: 0.7rem; font-weight: 600; }
         .btn-edit:hover, .btn-delete:hover, .btn-view:hover, .btn-add-lote:hover { transform: translateY(-1px); filter: brightness(0.95); }
-        .lote-editar-btn { background: var(--warning); color: #1a2c3e; }
         .resumen-producto-base { background: var(--primary); color: white; padding: 12px; border-radius: 12px; margin-bottom: 20px; font-size: 0.85rem; }
         .resumen-producto-base i { margin-right: 8px; }
         .button-group-step3 { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
@@ -251,6 +427,7 @@
         <table class="product-table">
             <thead>
                 <tr>
+                    <th>Imagen</th>
                     <th>Código Barras</th>
                     <th>Producto</th>
                     <th>Precio Venta</th>
@@ -265,13 +442,22 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="11" style="text-align:center">Cargando productos......</td><th响应
+                <tr><td colspan="12" style="text-align:center">Cargando productos......</td></tr>
             </tbody>
         </table>
     </div>
 
     <div style="text-align: right; margin-top: 8px;">
         <button class="btn" id="nuevoProductoBtn" style="background: var(--success);"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
+    </div>
+</div>
+
+<!-- Modal para ver imagen ampliada -->
+<div id="imageViewerModal" class="image-modal">
+    <div class="image-modal-content">
+        <span class="image-modal-close">&times;</span>
+        <img id="viewerImage" src="" alt="Producto">
+        <div class="image-modal-caption" id="viewerCaption"></div>
     </div>
 </div>
 
@@ -289,6 +475,24 @@
             <input type="hidden" id="loteIdExistente">
             <div id="step1" class="tab-content active">
                 <div class="form-grid">
+                    <div class="input-group full-width">
+                        <label><i class="fas fa-image"></i> Imagen del producto (opcional)</label>
+                        <div class="image-upload-area" id="imageUploadArea">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2rem;"></i>
+                            <p>Haz clic o arrastra una imagen</p>
+                            <small>Formatos: JPG, PNG, GIF (máx. 2MB)</small>
+                            <input type="file" id="productImage" accept="image/*" style="display: none;">
+                        </div>
+                        <div id="imagePreview" class="image-preview" style="display: none;">
+                            <img id="previewImg" src="" alt="Vista previa">
+                            <div>
+                                <button type="button" class="btn-remove-image" id="removeImageBtn">
+                                    <i class="fas fa-trash"></i> Eliminar imagen
+                                </button>
+                            </div>
+                        </div>
+                        <input type="hidden" id="imagen_url" value="">
+                    </div>
                     <div class="input-group full-width"><label><span class="required">*</span> Código de barras</label><input type="text" id="codigo_barras" required placeholder="Código único"><div class="error-message" id="error_codigo_barras">El código de barras es obligatorio</div><small>✓ Se permite el mismo código para diferentes formatos</small></div>
                     <div class="input-group"><label><span class="required">*</span> Nombre</label><input type="text" id="nombre" required><div class="error-message" id="error_nombre">El nombre es obligatorio</div></div>
                     <div class="input-group"><label><span class="required">*</span> Categoría</label><select id="categoria" required><option value="">Seleccionar</option></select><div class="error-message" id="error_categoria">Seleccione una categoría</div><button type="button" class="btn-outline btn-sm" id="nuevaCategoriaBtn" style="margin-top: 8px; width: 100%;">+ Nueva Categoría</button></div>
@@ -311,6 +515,7 @@
                             <option value="Botella">Botella</option>
                             <option value="Lata">Lata</option>
                         </select>
+                        <div class="error-message" id="error_unidad_medida">Seleccione una unidad de medida</div>
                     </div>
                     <div class="input-group"><label><span class="required">*</span> Cantidad por unidad</label><input type="number" id="cantidad_por_unidad" value="1" min="1"><div class="error-message" id="error_cantidad_por_unidad">Debe ser al menos 1</div><small>Ej: Si es Paquete de 6, poner 6</small></div>
                     <div class="input-group"><label>Ubicación</label><input type="text" id="ubicacion" placeholder="Pasillo-Estante"></div>
@@ -414,6 +619,8 @@
     let productos = [];
     let lotesPorProducto = {};
     let productosFiltrados = [];
+    let currentImageFile = null;
+    let currentImagePreview = null;
 
     // DOM Elements
     const tableBody = document.getElementById('tableBody');
@@ -427,6 +634,17 @@
     const loteModal = document.getElementById('loteModal');
     const categoriaModal = document.getElementById('categoriaModal');
     const detallesModal = document.getElementById('detallesModal');
+    const imageViewerModal = document.getElementById('imageViewerModal');
+    const viewerImage = document.getElementById('viewerImage');
+    const viewerCaption = document.getElementById('viewerCaption');
+    
+    // Elementos de imagen
+    const imageUploadArea = document.getElementById('imageUploadArea');
+    const productImageInput = document.getElementById('productImage');
+    const imagePreview = document.getElementById('imagePreview');
+    const previewImg = document.getElementById('previewImg');
+    const removeImageBtn = document.getElementById('removeImageBtn');
+    const imagenUrlInput = document.getElementById('imagen_url');
     
     // Filtros
     const filtroCategoria = document.getElementById('filtroCategoria');
@@ -497,6 +715,97 @@
     let currentStep = 1;
     const totalSteps = 3;
 
+    // FUNCIONES PARA MANEJO DE IMÁGENES
+    function initImageHandlers() {
+        imageUploadArea.addEventListener('click', () => {
+            productImageInput.click();
+        });
+        
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = 'var(--primary)';
+            imageUploadArea.style.background = 'var(--bg)';
+        });
+        
+        imageUploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = 'var(--border)';
+            imageUploadArea.style.background = 'transparent';
+        });
+        
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = 'var(--border)';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageFile(file);
+            }
+        });
+        
+        productImageInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+        
+        removeImageBtn.addEventListener('click', () => {
+            clearImage();
+        });
+    }
+    
+    function handleImageFile(file) {
+        if (file.size > 2 * 1024 * 1024) {
+            alert('La imagen no puede superar los 2MB');
+            return;
+        }
+        
+        currentImageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            currentImagePreview = e.target.result;
+            previewImg.src = currentImagePreview;
+            imagePreview.style.display = 'block';
+            imageUploadArea.style.display = 'none';
+            imagenUrlInput.value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function clearImage() {
+        currentImageFile = null;
+        currentImagePreview = null;
+        previewImg.src = '';
+        imagePreview.style.display = 'none';
+        imageUploadArea.style.display = 'block';
+        imagenUrlInput.value = '';
+        productImageInput.value = '';
+    }
+    
+    function setImageFromUrl(url) {
+        if (url && url.startsWith('data:image')) {
+            currentImagePreview = url;
+            previewImg.src = url;
+            imagePreview.style.display = 'block';
+            imageUploadArea.style.display = 'none';
+            imagenUrlInput.value = '';
+            currentImageFile = null;
+        } else if (url) {
+            currentImagePreview = url;
+            previewImg.src = url;
+            imagePreview.style.display = 'block';
+            imageUploadArea.style.display = 'none';
+            imagenUrlInput.value = url;
+            currentImageFile = null;
+        }
+    }
+    
+    function getImageData() {
+        if (currentImagePreview) {
+            return currentImagePreview;
+        }
+        return imagenUrlInput.value || null;
+    }
+
     function showStep(step) {
         document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
         document.getElementById(`step${step}`).classList.add('active');
@@ -525,17 +834,58 @@
         const categoria = document.getElementById('categoria');
         const unidadMedida = document.getElementById('unidad_medida');
         const cantidadPorUnidad = document.getElementById('cantidad_por_unidad');
-        if (!codigoBarras.value.trim()) { codigoBarras.classList.add('error'); document.getElementById('error_codigo_barras').style.display = 'block'; isValid = false; }
-        else { codigoBarras.classList.remove('error'); document.getElementById('error_codigo_barras').style.display = 'none'; }
-        if (!nombre.value.trim()) { nombre.classList.add('error'); document.getElementById('error_nombre').style.display = 'block'; isValid = false; }
-        else { nombre.classList.remove('error'); document.getElementById('error_nombre').style.display = 'none'; }
-        if (!categoria.value) { categoria.classList.add('error'); document.getElementById('error_categoria').style.display = 'block'; isValid = false; }
-        else { categoria.classList.remove('error'); document.getElementById('error_categoria').style.display = 'none'; }
-        if (!unidadMedida.value) { unidadMedida.classList.add('error'); document.getElementById('error_unidad_medida').style.display = 'block'; isValid = false; }
-        else { unidadMedida.classList.remove('error'); document.getElementById('error_unidad_medida').style.display = 'none'; }
+        
+        // Validar código de barras
+        if (!codigoBarras.value.trim()) { 
+            codigoBarras.classList.add('error'); 
+            document.getElementById('error_codigo_barras').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            codigoBarras.classList.remove('error'); 
+            document.getElementById('error_codigo_barras').style.display = 'none'; 
+        }
+        
+        // Validar nombre
+        if (!nombre.value.trim()) { 
+            nombre.classList.add('error'); 
+            document.getElementById('error_nombre').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            nombre.classList.remove('error'); 
+            document.getElementById('error_nombre').style.display = 'none'; 
+        }
+        
+        // Validar categoría
+        if (!categoria.value) { 
+            categoria.classList.add('error'); 
+            document.getElementById('error_categoria').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            categoria.classList.remove('error'); 
+            document.getElementById('error_categoria').style.display = 'none'; 
+        }
+        
+        // Validar unidad de medida
+        if (!unidadMedida.value) { 
+            unidadMedida.classList.add('error'); 
+            document.getElementById('error_unidad_medida').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            unidadMedida.classList.remove('error'); 
+            document.getElementById('error_unidad_medida').style.display = 'none'; 
+        }
+        
+        // Validar cantidad por unidad
         const cantUnidad = parseInt(cantidadPorUnidad.value);
-        if (isNaN(cantUnidad) || cantUnidad < 1) { cantidadPorUnidad.classList.add('error'); document.getElementById('error_cantidad_por_unidad').style.display = 'block'; isValid = false; }
-        else { cantidadPorUnidad.classList.remove('error'); document.getElementById('error_cantidad_por_unidad').style.display = 'none'; }
+        if (isNaN(cantUnidad) || cantUnidad < 1) { 
+            cantidadPorUnidad.classList.add('error'); 
+            document.getElementById('error_cantidad_por_unidad').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            cantidadPorUnidad.classList.remove('error'); 
+            document.getElementById('error_cantidad_por_unidad').style.display = 'none'; 
+        }
+        
         return isValid;
     }
     
@@ -544,23 +894,52 @@
         const precioCompra = document.getElementById('precio_compra');
         const precioVenta = document.getElementById('precio_venta');
         const stockMinimo = document.getElementById('stock_minimo');
+        
         const pCompra = parseFloat(precioCompra.value);
-        if (isNaN(pCompra) || pCompra < 0) { precioCompra.classList.add('error'); document.getElementById('error_precio_compra').style.display = 'block'; isValid = false; }
-        else { precioCompra.classList.remove('error'); document.getElementById('error_precio_compra').style.display = 'none'; }
+        if (isNaN(pCompra) || pCompra < 0) { 
+            precioCompra.classList.add('error'); 
+            document.getElementById('error_precio_compra').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            precioCompra.classList.remove('error'); 
+            document.getElementById('error_precio_compra').style.display = 'none'; 
+        }
+        
         const pVenta = parseFloat(precioVenta.value);
-        if (isNaN(pVenta) || pVenta < 0) { precioVenta.classList.add('error'); document.getElementById('error_precio_venta').style.display = 'block'; isValid = false; }
-        else { precioVenta.classList.remove('error'); document.getElementById('error_precio_venta').style.display = 'none'; }
+        if (isNaN(pVenta) || pVenta < 0) { 
+            precioVenta.classList.add('error'); 
+            document.getElementById('error_precio_venta').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            precioVenta.classList.remove('error'); 
+            document.getElementById('error_precio_venta').style.display = 'none'; 
+        }
+        
         const sMinimo = parseInt(stockMinimo.value);
-        if (isNaN(sMinimo) || sMinimo < 0) { stockMinimo.classList.add('error'); document.getElementById('error_stock_minimo').style.display = 'block'; isValid = false; }
-        else { stockMinimo.classList.remove('error'); document.getElementById('error_stock_minimo').style.display = 'none'; }
+        if (isNaN(sMinimo) || sMinimo < 0) { 
+            stockMinimo.classList.add('error'); 
+            document.getElementById('error_stock_minimo').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            stockMinimo.classList.remove('error'); 
+            document.getElementById('error_stock_minimo').style.display = 'none'; 
+        }
+        
         return isValid;
     }
 
     nextBtn.addEventListener('click', () => {
-        if (currentStep === 1 && validateStep1()) showStep(2);
-        else if (currentStep === 2 && validateStep2()) showStep(3);
+        if (currentStep === 1 && validateStep1()) {
+            showStep(2);
+        } else if (currentStep === 2 && validateStep2()) {
+            showStep(3);
+        }
     });
-    prevBtn.addEventListener('click', () => { if (currentStep > 1) showStep(currentStep - 1); });
+    
+    prevBtn.addEventListener('click', () => { 
+        if (currentStep > 1) showStep(currentStep - 1); 
+    });
+    
     backToStep2Btn.addEventListener('click', () => showStep(2));
 
     function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
@@ -590,6 +969,12 @@
         if (days <= 7) return { text: `<span class="expiry-badge expiry-soon">Vence en ${days} días</span>`, status: 'proximo', days: days };
         return { text: `<span class="expiry-badge">${expiryDate.toLocaleDateString()}</span>`, status: 'vigente', days: days };
     }
+
+    window.verImagenAmpliada = (imagenUrl, nombreProducto) => {
+        viewerImage.src = imagenUrl;
+        viewerCaption.textContent = nombreProducto || 'Producto';
+        imageViewerModal.style.display = 'flex';
+    };
 
     async function cargarLotesProducto(productoId) {
         try {
@@ -663,7 +1048,7 @@
 
     async function renderTabla(productosArray) {
         if (!productosArray.length) { 
-            tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center">📭 No hay productos registrados</td></tr>'; 
+            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">📭 No hay productos registrados</td></tr>'; 
             return; 
         }
         
@@ -686,8 +1071,15 @@
             const expiryStatus = getExpiryStatus(fechaVencimientoProducto).text;
             const unidadFormato = `${p.unidad_medida || '?'} x${p.cantidad_por_unidad || 1}`;
             
-            // AHORA SON EXACTAMENTE 11 COLUMNAS (coincide con los th)
+            let imageHtml = '';
+            if (p.imagen) {
+                imageHtml = `<img src="${p.imagen}" class="product-image" alt="${escapeHtml(p.nombre)}" onclick="verImagenAmpliada('${p.imagen}', '${escapeHtml(p.nombre)}')">`;
+            } else {
+                imageHtml = `<div class="product-image-placeholder" onclick="editarProducto(${p.id})"><i class="fas fa-camera"></i></div>`;
+            }
+            
             return `<tr>
+                <td>${imageHtml}</td>
                 <td><code>${escapeHtml(p.codigo_barras || '—')}</code></td>
                 <td><strong>${escapeHtml(p.nombre)}</strong><br><small>${escapeHtml(p.categoria || '—')}</small></td>
                 <td>$${Number(p.precio_venta).toFixed(2)}</td>
@@ -737,8 +1129,18 @@
         const lotes = lotesPorProducto[id] || [];
         const lotesHtml = lotes.length ? lotes.map(l => `<div class="batch-item"><div class="batch-info-text"><strong>Lote:</strong> ${l.numero_lote || 'N/A'}<br><strong>Cantidad:</strong> ${l.cantidad}<br><strong>Precio compra:</strong> $${l.precio_compra}<br><strong>Vence:</strong> ${l.fecha_vencimiento ? new Date(l.fecha_vencimiento).toLocaleDateString() : 'N/A'}<br><strong>Entrada:</strong> ${new Date(l.fecha_entrada).toLocaleDateString()}</div></div>`).join('') : '<p>No hay lotes registrados</p>';
         const unidadFormato = `${producto.unidad_medida || '?'} x${producto.cantidad_por_unidad || 1}`;
+        
+        let imagenHtml = '';
+        if (producto.imagen) {
+            imagenHtml = `<div class="detail-card full-width" style="text-align:center">
+                            <div class="detail-label">Imagen del producto</div>
+                            <img src="${producto.imagen}" class="product-image-large" alt="${escapeHtml(producto.nombre)}" onclick="verImagenAmpliada('${producto.imagen}', '${escapeHtml(producto.nombre)}')" style="cursor:pointer">
+                          </div>`;
+        }
+        
         document.getElementById('detallesContent').innerHTML = `
             <div class="details-grid">
+                ${imagenHtml}
                 <div class="detail-card"><div class="detail-label">Código Barras</div><div class="detail-value">${escapeHtml(producto.codigo_barras || '—')}</div></div>
                 <div class="detail-card"><div class="detail-label">Producto</div><div class="detail-value"><strong>${escapeHtml(producto.nombre)}</strong></div></div>
                 <div class="detail-card"><div class="detail-label">Categoría</div><div class="detail-value">${escapeHtml(producto.categoria)}</div></div>
@@ -831,7 +1233,8 @@
             cantidad_por_unidad: nuevaCantidad,
             proveedor: productoBase.proveedor,
             ubicacion: productoBase.ubicacion,
-            fecha_vencimiento: document.getElementById('nuevoLoteFechaVencimiento').value || null
+            fecha_vencimiento: document.getElementById('nuevoLoteFechaVencimiento').value || null,
+            imagen: productoBase.imagen || null
         };
         
         const resProducto = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoProducto) });
@@ -919,7 +1322,7 @@
                 filtrosStats.innerHTML = `📊 Mostrando ${productos.length} de ${productos.length} productos`;
             }
         } catch (error) {
-            tableBody.innerHTML = '<tr><td colspan="11" style="text-align:center">⚠️ Error conectando al servidor</td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">⚠️ Error conectando al servidor</td></tr>';
         }
     }
 
@@ -944,12 +1347,36 @@
     }
 
     async function buscarPorCodigo(texto) {
-        if (!texto.trim()) { limpiarFiltros(); return; }
+        if (!texto.trim()) { limpiarFiltros(); document.getElementById('resultadoBusqueda').innerHTML = ''; return; }
         const filtered = productos.filter(p => p.codigo_barras?.toLowerCase().includes(texto.toLowerCase()) || p.nombre?.toLowerCase().includes(texto.toLowerCase()));
         productosFiltrados = filtered;
         renderTabla(productosFiltrados);
         filtrosStats.innerHTML = `📊 Mostrando ${filtered.length} de ${productos.length} productos`;
-        document.getElementById('resultadoBusqueda').innerHTML = filtered.length ? `<span style="color:var(--success)">🔍 ${filtered.length} resultado(s)</span>` : `<span style="color:var(--danger)">❌ No encontrado</span>`;
+        
+        if (filtered.length === 1) {
+            const producto = filtered[0];
+            const imageHtml = producto.imagen ? 
+                `<img src="${producto.imagen}" alt="${escapeHtml(producto.nombre)}" onclick="verImagenAmpliada('${producto.imagen}', '${escapeHtml(producto.nombre)}')">` :
+                `<div class="product-image-placeholder" style="width:80px;height:80px;"><i class="fas fa-camera"></i></div>`;
+            
+            document.getElementById('resultadoBusqueda').innerHTML = `
+                <div class="product-search-card">
+                    ${imageHtml}
+                    <div class="product-search-info">
+                        <div class="product-search-name">${escapeHtml(producto.nombre)}</div>
+                        <div class="product-search-details">
+                            <strong>Código:</strong> ${escapeHtml(producto.codigo_barras)}<br>
+                            <strong>Precio:</strong> $${producto.precio_venta} | 
+                            <strong>Stock:</strong> ${producto.stock} unidades
+                        </div>
+                    </div>
+                </div>
+            `;
+        } else if (filtered.length > 1) {
+            document.getElementById('resultadoBusqueda').innerHTML = `<span style="color:var(--success)">🔍 ${filtered.length} productos encontrados</span>`;
+        } else {
+            document.getElementById('resultadoBusqueda').innerHTML = `<span style="color:var(--danger)">❌ No se encontraron productos</span>`;
+        }
     }
 
     productForm.addEventListener('submit', async (e) => {
@@ -970,6 +1397,7 @@
         
         const id = document.getElementById('productId').value;
         const loteIdExistente = document.getElementById('loteIdExistente').value;
+        const imagenData = getImageData();
         
         const payload = {
             codigo_barras: document.getElementById('codigo_barras').value.trim(),
@@ -983,7 +1411,8 @@
             proveedor: document.getElementById('proveedor').value,
             ubicacion: document.getElementById('ubicacion').value,
             descripcion: document.getElementById('descripcion').value,
-            fecha_vencimiento: fechaVencimientoLote
+            fecha_vencimiento: fechaVencimientoLote,
+            imagen: imagenData
         };
         
         if (!id) {
@@ -1060,6 +1489,7 @@
         document.getElementById('loteCantidadTemp').value = '';
         document.getElementById('loteFechaVencimientoTemp').value = '';
         document.getElementById('lotePrecioCompraTemp').value = '';
+        clearImage();
         currentStep = 1;
         showStep(1);
     }
@@ -1081,6 +1511,12 @@
         document.getElementById('proveedor').value = p.proveedor || '';
         document.getElementById('ubicacion').value = p.ubicacion || '';
         document.getElementById('descripcion').value = p.descripcion || '';
+        
+        if (p.imagen) {
+            setImageFromUrl(p.imagen);
+        } else {
+            clearImage();
+        }
         
         const lotes = lotesPorProducto[id] || [];
         if (lotes.length > 0) {
@@ -1157,18 +1593,6 @@
         }
     });
     
-    const inputs = ['codigo_barras', 'nombre', 'categoria', 'cantidad_por_unidad', 'precio_compra', 'precio_venta', 'stock_minimo', 'loteNumeroTemp', 'loteCantidadTemp'];
-    inputs.forEach(id => {
-        const input = document.getElementById(id);
-        if (input) {
-            input.addEventListener('input', () => {
-                input.classList.remove('error');
-                const errorDiv = document.getElementById(`error_${id}`);
-                if (errorDiv) errorDiv.style.display = 'none';
-            });
-        }
-    });
-    
     function cerrarModal(modalElement) { modalElement.style.display = 'none'; }
     closeModalBtns.forEach(btn => btn?.addEventListener('click', () => cerrarModal(modal)));
     closeAgregarLoteModalBtn?.addEventListener('click', () => cerrarModal(agregarLoteModal));
@@ -1179,6 +1603,16 @@
     cancelLoteBtn?.addEventListener('click', () => cerrarModal(loteModal));
     cancelCategoriaBtn?.addEventListener('click', () => cerrarModal(categoriaModal));
     cancelAgregarLoteBtn?.addEventListener('click', () => cerrarModal(agregarLoteModal));
+    
+    document.querySelector('.image-modal-close')?.addEventListener('click', () => {
+        imageViewerModal.style.display = 'none';
+    });
+    imageViewerModal?.addEventListener('click', (e) => {
+        if (e.target === imageViewerModal) {
+            imageViewerModal.style.display = 'none';
+        }
+    });
+    
     window.addEventListener('click', (e) => { 
         if (e.target === modal) cerrarModal(modal); 
         if (e.target === agregarLoteModal) cerrarModal(agregarLoteModal);
@@ -1193,6 +1627,7 @@
     if (localStorage.getItem('modoSupermercado') === 'true') { document.body.classList.add('dark'); modoBtn.innerHTML = '<i class="fas fa-sun"></i> Claro'; }
     modoBtn.addEventListener('click', toggleModo);
 
+    initImageHandlers();
     initFiltersCollapse();
     cargarCategorias();
     cargarProductos();
