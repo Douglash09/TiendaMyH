@@ -228,7 +228,7 @@ app.put('/api/products/:id', (req, res) => {
             } else if (key === 'imagen') {
                 fields.push(`${key}=?`);
                 values.push(updates[key] || null);
-            } else if (key !== 'formato_venta' && key !== 'cantidad_formato' && key !== 'stock') {
+            } else {
                 fields.push(`${key}=?`);
                 values.push(updates[key]);
             }
@@ -633,6 +633,56 @@ app.post('/api/ventas', (req, res) => {
 });
 
 // =============================================
+// ========== RUTA PARA ACTUALIZAR STOCK =======
+// =============================================
+app.post('/api/ventas/actualizar-stock', (req, res) => {
+    const { productos } = req.body;
+    
+    if (!productos || !Array.isArray(productos)) {
+        return res.status(400).json({ ok: false, error: "Datos inválidos" });
+    }
+    
+    db.beginTransaction(err => {
+        if (err) {
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        
+        let completados = 0;
+        let errores = [];
+        
+        for (const item of productos) {
+            db.query('UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ?', 
+                [item.cantidad, item.id, item.cantidad], 
+                (err, result) => {
+                    if (err) {
+                        errores.push(err.message);
+                    }
+                    completados++;
+                    
+                    if (completados === productos.length) {
+                        if (errores.length > 0) {
+                            db.rollback(() => {
+                                res.status(500).json({ ok: false, error: errores.join(', ') });
+                            });
+                        } else {
+                            db.commit(err => {
+                                if (err) {
+                                    db.rollback(() => {
+                                        res.status(500).json({ ok: false, error: err.message });
+                                    });
+                                } else {
+                                    res.json({ ok: true, message: "Stock actualizado" });
+                                }
+                            });
+                        }
+                    }
+                }
+            );
+        }
+    });
+});
+
+// =============================================
 // ========== RUTAS DE AUTENTICACIÓN ===========
 // =============================================
 
@@ -658,6 +708,10 @@ app.get("/dashboard", (req, res) => {
 
 app.get("/productos", (req, res) => {
     res.sendFile(path.join(__dirname, "productos.html"));
+});
+
+app.get("/ventas", (req, res) => {
+    res.sendFile(path.join(__dirname, "ventas.html"));
 });
 
 app.post("/login_admin", (req, res) => {
@@ -780,10 +834,12 @@ app.listen(PORT, () => {
     ║   📄 Productos: /productos                        ║
     ║   📄 Dashboard: /dashboard                        ║
     ║   📄 Alertas: /alerta                             ║
+    ║   📄 Ventas: /ventas                              ║
     ║   💵 Moneda: USD ($)                              ║
     ║   ✅ Productos: Se pueden eliminar (CASCADE)      ║
     ║   ✅ Fechas: Se actualizan al editar lote         ║
     ║   📸 Imágenes: Soporte para fotos opcionales      ║
+    ║   🛒 Ventas: Punto de venta con tickets PDF       ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });

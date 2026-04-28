@@ -75,6 +75,8 @@
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-success:hover { background: #1b5e20; transform: translateY(-2px); }
         .btn-danger:hover { background: #b71c1c; transform: translateY(-2px); }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .user-chip {
@@ -283,6 +285,7 @@
                 <span id="userNameDisplay">Administrador</span>
                 <span class="muted" id="userRoleDisplay" style="font-size:0.7rem;">admin</span>
             </div>
+            <button class="btn btn-success" id="btnVender"><i class="fas fa-shopping-cart"></i> Vender</button>
             <button class="btn btn-primary" id="btnNewProduct"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
             <button class="btn btn-outline" id="btnRefresh"><i class="fas fa-sync-alt"></i> Actualizar</button>
             <button class="btn btn-outline" id="modeBtn"><i class="fas fa-moon"></i> Modo oscuro</button>
@@ -695,6 +698,11 @@
         }
     }
 
+    // ======================= IR A VENTAS =======================
+    function irAVentas() {
+        window.location.href = '/ventas';
+    }
+
     // ======================= NAVEGACIÓN =======================
     function irAProductos() { window.location.href = 'productos.html'; }
     function irAAlertas() { window.location.href = 'alertas.html'; }
@@ -705,6 +713,7 @@
     document.getElementById('modeBtn')?.addEventListener('click', toggleMode);
     document.getElementById('btnNewProduct')?.addEventListener('click', irANuevoProducto);
     document.getElementById('btnRefresh')?.addEventListener('click', () => cargarEstadisticas());
+    document.getElementById('btnVender')?.addEventListener('click', irAVentas);
     document.getElementById('tabProductos')?.addEventListener('click', irAProductos);
     document.getElementById('tabAlertas')?.addEventListener('click', irAAlertas);
     document.getElementById('tabDashboard')?.addEventListener('click', () => cargarEstadisticas());
