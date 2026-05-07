@@ -374,6 +374,7 @@
             <button class="btn btn-success" id="nuevoProductoBtnTop"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
             <button class="btn" id="modoOscuroBtn"><i class="fas fa-moon"></i> Modo</button>
             <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+            <button class="btn btn-outline" id="irVentas"><i class="fas fa-cash-register"></i> Ventas</button>
         </div>
     </div>
 
@@ -555,7 +556,7 @@
 <!-- MODAL AGREGAR LOTE - NUEVO PRODUCTO -->
 <div id="agregarLoteModal" class="modal">
     <div class="modal-content">
-        <div class="modal-header"><h3><i class="fas fa-plus-circle"></i> Agregar Lote - Nuevo Producto</h3><button class="icon-btn" id="closeAgregarLoteModalBtn">&times;</button></div>
+        <div class="modal-header"><h3><i class="fas fa-plus-circle"></i> Agregar Lote - Copiar Producto</h3><button class="icon-btn" id="closeAgregarLoteModalBtn">&times;</button></div>
         <div id="resumenProductoBase" class="resumen-producto-base"></div>
         <form id="agregarLoteForm">
             <input type="hidden" id="nuevoProductoBaseId">
@@ -703,6 +704,7 @@
     const modalTitle = document.getElementById('modalTitle');
     const loteModalTitle = document.getElementById('loteModalTitle');
     const volverDashboard = document.getElementById('volverDashboard');
+    const irVentas = document.getElementById('irVentas');
     const nuevaCategoriaBtn = document.getElementById('nuevaCategoriaBtn');
     
     const prevBtn = document.getElementById('prevBtn');
@@ -835,7 +837,6 @@
         const unidadMedida = document.getElementById('unidad_medida');
         const cantidadPorUnidad = document.getElementById('cantidad_por_unidad');
         
-        // Validar código de barras
         if (!codigoBarras.value.trim()) { 
             codigoBarras.classList.add('error'); 
             document.getElementById('error_codigo_barras').style.display = 'block'; 
@@ -845,7 +846,6 @@
             document.getElementById('error_codigo_barras').style.display = 'none'; 
         }
         
-        // Validar nombre
         if (!nombre.value.trim()) { 
             nombre.classList.add('error'); 
             document.getElementById('error_nombre').style.display = 'block'; 
@@ -855,7 +855,6 @@
             document.getElementById('error_nombre').style.display = 'none'; 
         }
         
-        // Validar categoría
         if (!categoria.value) { 
             categoria.classList.add('error'); 
             document.getElementById('error_categoria').style.display = 'block'; 
@@ -865,7 +864,6 @@
             document.getElementById('error_categoria').style.display = 'none'; 
         }
         
-        // Validar unidad de medida
         if (!unidadMedida.value) { 
             unidadMedida.classList.add('error'); 
             document.getElementById('error_unidad_medida').style.display = 'block'; 
@@ -875,7 +873,6 @@
             document.getElementById('error_unidad_medida').style.display = 'none'; 
         }
         
-        // Validar cantidad por unidad
         const cantUnidad = parseInt(cantidadPorUnidad.value);
         if (isNaN(cantUnidad) || cantUnidad < 1) { 
             cantidadPorUnidad.classList.add('error'); 
@@ -1179,9 +1176,11 @@
         loteModal.style.display = 'flex';
     };
     
+    // Función CORREGIDA para abrir agregar lote
     window.abrirAgregarLoteDesdeTabla = async (productoId) => {
         const productoOriginal = productos.find(p => p.id === productoId);
         if (!productoOriginal) return;
+        
         const resumenHtml = `<i class="fas fa-info-circle"></i> <strong>Producto base:</strong><br>📦 ${escapeHtml(productoOriginal.nombre)}<br>🔢 Código: ${escapeHtml(productoOriginal.codigo_barras)}<br>📁 Categoría: ${escapeHtml(productoOriginal.categoria)}<br>💰 Precio venta: $${productoOriginal.precio_venta} | Precio compra: $${productoOriginal.precio_compra}<br>📏 Unidad/Formato: ${productoOriginal.unidad_medida} x${productoOriginal.cantidad_por_unidad}`;
         document.getElementById('resumenProductoBase').innerHTML = resumenHtml;
         document.getElementById('nuevoProductoBaseId').value = productoId;
@@ -1193,27 +1192,52 @@
         agregarLoteModal.style.display = 'flex';
     };
 
+    // Función CORREGIDA para submit del agregar lote
     agregarLoteForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const numeroLote = document.getElementById('nuevoLoteNumero').value.trim();
         const cantidad = parseInt(document.getElementById('nuevoLoteCantidad').value);
         let isValid = true;
-        if (!numeroLote) { document.getElementById('error_nuevo_lote_numero').style.display = 'block'; isValid = false; }
-        else { document.getElementById('error_nuevo_lote_numero').style.display = 'none'; }
-        if (isNaN(cantidad) || cantidad < 1) { document.getElementById('error_nuevo_lote_cantidad').style.display = 'block'; isValid = false; }
-        else { document.getElementById('error_nuevo_lote_cantidad').style.display = 'none'; }
+        
+        if (!numeroLote) { 
+            document.getElementById('error_nuevo_lote_numero').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            document.getElementById('error_nuevo_lote_numero').style.display = 'none'; 
+        }
+        
+        if (isNaN(cantidad) || cantidad < 1) { 
+            document.getElementById('error_nuevo_lote_cantidad').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            document.getElementById('error_nuevo_lote_cantidad').style.display = 'none'; 
+        }
+        
         if (!isValid) return;
         
         const productoBaseId = parseInt(document.getElementById('nuevoProductoBaseId').value);
         const productoBase = productos.find(p => p.id === productoBaseId);
         if (!productoBase) return;
         
+        // Detectar automáticamente el siguiente formato
         let nuevoFormato = productoBase.unidad_medida;
         let nuevaCantidad = productoBase.cantidad_por_unidad;
-        if (productoBase.unidad_medida === 'Pieza') { nuevoFormato = 'Paquete'; nuevaCantidad = 6; }
-        else if (productoBase.unidad_medida === 'Paquete') { nuevoFormato = 'Caja'; nuevaCantidad = 24; }
-        else if (productoBase.unidad_medida === 'Botella') { nuevoFormato = 'Caja'; nuevaCantidad = 12; }
-        else { nuevoFormato = 'Pieza'; nuevaCantidad = 1; }
+        
+        const formatosMap = {
+            'Pieza': { formato: 'Paquete', cantidad: 6 },
+            'Paquete': { formato: 'Caja', cantidad: 24 },
+            'Botella': { formato: 'Caja', cantidad: 12 },
+            'Caja': { formato: 'Paquete', cantidad: 1 },
+            'Lata': { formato: 'Paquete', cantidad: 6 }
+        };
+        
+        if (formatosMap[productoBase.unidad_medida]) {
+            nuevoFormato = formatosMap[productoBase.unidad_medida].formato;
+            nuevaCantidad = formatosMap[productoBase.unidad_medida].cantidad;
+        } else {
+            nuevoFormato = 'Pieza';
+            nuevaCantidad = 1;
+        }
         
         const nuevoPrecioCompraInput = document.getElementById('nuevoLotePrecioCompra').value;
         const nuevoPrecioVentaInput = document.getElementById('nuevoLotePrecioVenta').value;
@@ -1237,11 +1261,20 @@
             imagen: productoBase.imagen || null
         };
         
-        const resProducto = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(nuevoProducto) });
+        const resProducto = await fetch(`${API_URL}/products`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(nuevoProducto) 
+        });
         const dataProducto = await resProducto.json();
-        if (!dataProducto.ok) { alert('❌ Error al crear el nuevo producto: ' + (dataProducto.error || '')); return; }
+        
+        if (!dataProducto.ok) { 
+            alert('❌ Error al crear el nuevo producto: ' + (dataProducto.error || '')); 
+            return; 
+        }
         
         const nuevoProductoId = dataProducto.id;
+        
         const loteData = {
             producto_id: nuevoProductoId,
             cantidad: cantidad,
@@ -1250,14 +1283,21 @@
             numero_lote: numeroLote
         };
         
-        const resLote = await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
+        const resLote = await fetch(`${API_URL}/batches`, { 
+            method: 'POST', 
+            headers: { 'Content-Type': 'application/json' }, 
+            body: JSON.stringify(loteData) 
+        });
         const dataLote = await resLote.json();
+        
         if (dataLote.ok) {
             alert(`✅ Producto creado exitosamente!\n\n📦 ${productoBase.nombre}\n📏 Formato: ${nuevoFormato} x ${nuevaCantidad}\n💰 Precio compra: $${precioCompraFinal}\n💰 Precio venta: $${precioVentaFinal}\n🔢 Lote: ${numeroLote}\n📊 Stock inicial: ${cantidad} unidades`);
             agregarLoteModal.style.display = 'none';
             agregarLoteForm.reset();
             await cargarProductos();
-        } else { alert('❌ Error al registrar el lote: ' + (dataLote.error || '')); }
+        } else { 
+            alert('❌ Error al registrar el lote: ' + (dataLote.error || '')); 
+        }
     });
 
     function validarLoteData() {
@@ -1620,7 +1660,10 @@
         if (e.target === categoriaModal) cerrarModal(categoriaModal); 
         if (e.target === detallesModal) cerrarModal(detallesModal); 
     });
-    volverDashboard.addEventListener('click', () => { window.location.href = 'dashboard.html'; });
+    
+    // Navegación corregida
+    volverDashboard.addEventListener('click', () => { window.location.href = '/dashboard'; });
+    irVentas.addEventListener('click', () => { window.location.href = '/ventas'; });
 
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }

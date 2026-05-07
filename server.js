@@ -2,6 +2,8 @@ const express = require("express");
 const mysql = require("mysql2");
 const path = require("path");
 const bcrypt = require("bcrypt");
+const fs = require("fs-extra");
+const multer = require("multer");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -17,6 +19,22 @@ const DB_CONFIG = {
 // ===== CONEXIÓN MYSQL =====
 const db = mysql.createConnection(DB_CONFIG);
 
+// Asegurar que la carpeta tickets existe
+const ticketsDir = path.join(__dirname, 'tickets');
+fs.ensureDirSync(ticketsDir);
+console.log(`📁 Carpeta de tickets: ${ticketsDir}`);
+
+// ===== CONFIGURACIÓN DE MULTER PARA PDFs =====
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, ticketsDir)
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+});
+const upload = multer({ storage: storage });
+
 db.connect(err => {
     if (err) {
         console.error("❌ Error conectando a MySQL:", err.message);
@@ -27,11 +45,56 @@ db.connect(err => {
     crearTablaCategorias();
     crearTablaProductos();
     crearTablaLotes();
+    crearTablaVentas();
+    crearTablaDetalleVenta();
+    crearTablaUsuarios();
+    crearTablaRoles();
+    insertarDatosDefault();
 });
 
 // =============================================
 // ========== CREAR TABLAS ====================
 // =============================================
+
+function crearTablaRoles() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS roles (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            nombre_rol VARCHAR(50) NOT NULL UNIQUE,
+            descripcion TEXT,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+    `;
+    db.query(sql, (err) => {
+        if (err) console.error("❌ Error creando tabla roles:", err.message);
+        else console.log("✅ Tabla roles lista");
+    });
+}
+
+function crearTablaUsuarios() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS usuarios (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            id_rol INT NOT NULL,
+            usuario VARCHAR(50) NOT NULL UNIQUE,
+            password VARCHAR(255) NOT NULL,
+            nombre_completo VARCHAR(100) NOT NULL,
+            email VARCHAR(100),
+            telefono VARCHAR(20),
+            direccion TEXT,
+            fecha_nacimiento DATE,
+            fecha_contratacion DATE,
+            activo BOOLEAN DEFAULT TRUE,
+            fecha_creacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            ultimo_acceso TIMESTAMP NULL,
+            FOREIGN KEY (id_rol) REFERENCES roles(id) ON DELETE RESTRICT ON UPDATE CASCADE
+        )
+    `;
+    db.query(sql, (err) => {
+        if (err) console.error("❌ Error creando tabla usuarios:", err.message);
+        else console.log("✅ Tabla usuarios lista");
+    });
+}
 
 function crearTablaCategorias() {
     const sql = `
@@ -43,18 +106,8 @@ function crearTablaCategorias() {
         )
     `;
     db.query(sql, (err) => {
-        if (err) {
-            console.error("❌ Error creando tabla categorías:", err.message);
-        } else {
-            insertarCategoriasDefault();
-        }
-    });
-}
-
-function insertarCategoriasDefault() {
-    const categorias = ['Lácteos', 'Carnes', 'Verduras', 'Frutas', 'Abarrotes', 'Bebidas', 'Limpieza', 'Higiene Personal', 'Panadería', 'Congelados'];
-    categorias.forEach(cat => {
-        db.query("INSERT IGNORE INTO categorias (nombre) VALUES (?)", [cat]);
+        if (err) console.error("❌ Error creando tabla categorías:", err.message);
+        else console.log("✅ Tabla categorías lista");
     });
 }
 
@@ -84,34 +137,8 @@ function crearTablaProductos() {
         )
     `;
     db.query(sql, (err) => {
-        if (err) {
-            console.error("❌ Error creando tabla productos:", err.message);
-        } else {
-            console.log("✅ Tabla productos lista");
-            agregarColumnaImagenSiNoExiste();
-        }
-    });
-}
-
-function agregarColumnaImagenSiNoExiste() {
-    db.query("SHOW COLUMNS FROM productos LIKE 'imagen'", (err, result) => {
-        if (err) {
-            console.error("❌ Error verificando columna imagen:", err.message);
-            return;
-        }
-        
-        if (result.length === 0) {
-            const sql = `ALTER TABLE productos ADD COLUMN imagen LONGTEXT`;
-            db.query(sql, (err) => {
-                if (err) {
-                    console.error("❌ Error agregando columna imagen:", err.message);
-                } else {
-                    console.log("✅ Columna imagen agregada correctamente");
-                }
-            });
-        } else {
-            console.log("✅ Columna imagen ya existe");
-        }
+        if (err) console.error("❌ Error creando tabla productos:", err.message);
+        else console.log("✅ Tabla productos lista");
     });
 }
 
@@ -132,17 +159,97 @@ function crearTablaLotes() {
         )
     `;
     db.query(sql, (err) => {
-        if (err) {
-            console.error("❌ Error creando tabla lotes:", err.message);
-        } else {
-            console.log("✅ Tabla lotes lista");
-        }
+        if (err) console.error("❌ Error creando tabla lotes:", err.message);
+        else console.log("✅ Tabla lotes lista");
     });
+}
+
+function crearTablaVentas() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS venta (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            folio VARCHAR(20) NOT NULL UNIQUE,
+            id_usuario INT NOT NULL,
+            fecha_venta TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            subtotal DECIMAL(10,2) NOT NULL,
+            iva DECIMAL(10,2) DEFAULT 0.00,
+            total DECIMAL(10,2) NOT NULL,
+            metodo_pago ENUM('efectivo', 'tarjeta', 'transferencia') DEFAULT 'efectivo',
+            estado ENUM('completada', 'cancelada', 'pendiente') DEFAULT 'completada',
+            INDEX idx_folio (folio),
+            INDEX idx_fecha (fecha_venta)
+        )
+    `;
+    db.query(sql, (err) => {
+        if (err) console.error("❌ Error creando tabla ventas:", err.message);
+        else console.log("✅ Tabla ventas lista");
+    });
+}
+
+function crearTablaDetalleVenta() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS detalle_venta (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            id_venta INT NOT NULL,
+            id_producto INT NOT NULL,
+            cantidad INT NOT NULL,
+            precio_unitario DECIMAL(10,2) NOT NULL,
+            subtotal DECIMAL(10,2) NOT NULL,
+            FOREIGN KEY (id_venta) REFERENCES venta(id) ON DELETE CASCADE,
+            FOREIGN KEY (id_producto) REFERENCES productos(id) ON DELETE CASCADE,
+            INDEX idx_venta (id_venta),
+            INDEX idx_producto (id_producto)
+        )
+    `;
+    db.query(sql, (err) => {
+        if (err) console.error("❌ Error creando tabla detalle_venta:", err.message);
+        else console.log("✅ Tabla detalle_venta lista");
+    });
+}
+
+function insertarDatosDefault() {
+    // Insertar roles
+    db.query("INSERT IGNORE INTO roles (nombre_rol, descripcion) VALUES ('Administrador', 'Acceso total al sistema'), ('Empleado', 'Acceso a ventas y consulta de inventario')");
+    
+    // Insertar categorías
+    const categorias = ['Lácteos', 'Carnes', 'Verduras', 'Frutas', 'Abarrotes', 'Bebidas', 'Limpieza', 'Higiene Personal', 'Panadería', 'Congelados'];
+    categorias.forEach(cat => {
+        db.query("INSERT IGNORE INTO categorias (nombre) VALUES (?)", [cat]);
+    });
+    
+    // Insertar usuarios (contraseña: 1234 encriptada)
+    db.query(`INSERT IGNORE INTO usuarios (id_rol, usuario, password, nombre_completo) VALUES 
+        (1, 'douglas', '$2b$10$qprHTjY81.orlLHOs0T6OOK0NCXJR3oiCKcPYrcGWAeIqs/Mg9Pte', 'Douglas Omar Mendez Hernandez'),
+        (1, 'admin', '$2b$10$qprHTjY81.orlLHOs0T6OOK0NCXJR3oiCKcPYrcGWAeIqs/Mg9Pte', 'Administrador General'),
+        (2, 'empleado1', '$2b$10$qprHTjY81.orlLHOs0T6OOK0NCXJR3oiCKcPYrcGWAeIqs/Mg9Pte', 'Empleado Uno')`);
+    
+    console.log("✅ Datos default insertados");
 }
 
 // ===== MIDDLEWARES =====
 app.use(express.json({ limit: '10mb' }));
 app.use(express.static(__dirname));
+
+// =============================================
+// ========== RUTAS DE PÁGINAS ================
+// =============================================
+
+app.get("/", (req, res) => { res.sendFile(path.join(__dirname, "roles.html")); });
+app.get("/roles.html", (req, res) => { res.sendFile(path.join(__dirname, "roles.html")); });
+app.get("/productos", (req, res) => { res.sendFile(path.join(__dirname, "productos.html")); });
+app.get("/productos.html", (req, res) => { res.sendFile(path.join(__dirname, "productos.html")); });
+app.get("/inventario", (req, res) => { res.sendFile(path.join(__dirname, "productos.html")); });
+app.get("/index.html", (req, res) => { res.sendFile(path.join(__dirname, "productos.html")); });
+app.get("/dashboard", (req, res) => { res.sendFile(path.join(__dirname, "index_admin.html")); });
+app.get("/index_admin.html", (req, res) => { res.sendFile(path.join(__dirname, "index_admin.html")); });
+app.get("/alertas", (req, res) => { res.sendFile(path.join(__dirname, "alertas.html")); });
+app.get("/alertas.html", (req, res) => { res.sendFile(path.join(__dirname, "alertas.html")); });
+app.get("/ventas", (req, res) => { res.sendFile(path.join(__dirname, "ventas.html")); });
+app.get("/ventas.html", (req, res) => { res.sendFile(path.join(__dirname, "ventas.html")); });
+app.get("/registro_ventas", (req, res) => { res.sendFile(path.join(__dirname, "registro_ventas.html")); });
+app.get("/registro_ventas.html", (req, res) => { res.sendFile(path.join(__dirname, "registro_ventas.html")); });
+app.get("/login_admin.html", (req, res) => { res.sendFile(path.join(__dirname, "login_admin.html")); });
+app.get("/login_empleado.html", (req, res) => { res.sendFile(path.join(__dirname, "login_empleado.html")); });
 
 // =============================================
 // ========== RUTAS DE PRODUCTOS ===============
@@ -325,6 +432,7 @@ app.get('/api/batches/product/:productoId', (req, res) => {
 
 app.post('/api/batches', (req, res) => {
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
+    
     if (!producto_id || !cantidad || !numero_lote) {
         return res.status(400).json({ ok: false, error: "Producto, cantidad y número de lote son obligatorios" });
     }
@@ -337,24 +445,42 @@ app.post('/api/batches', (req, res) => {
         }
     }
     
-    const sqlLote = `INSERT INTO lotes 
-        (producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote) 
-        VALUES (?, ?, ?, ?, ?)`;
-    
-    db.query(sqlLote, [producto_id, cantidad, fechaFormateada, precio_compra || null, numero_lote], (err, result) => {
+    db.query('SELECT stock, id FROM productos WHERE id = ?', [producto_id], (err, productResult) => {
         if (err) {
-            console.error("Error insertando lote:", err);
+            console.error("Error verificando producto:", err);
             return res.status(500).json({ ok: false, error: err.message });
         }
         
-        const sqlUpdateFecha = `UPDATE productos SET fecha_vencimiento = ? 
-            WHERE id = ? AND (fecha_vencimiento IS NULL OR fecha_vencimiento > ?)`;
-        db.query(sqlUpdateFecha, [fechaFormateada, producto_id, fechaFormateada], (err) => {
+        const existingStock = productResult[0]?.stock || 0;
+        
+        const sqlLote = `INSERT INTO lotes 
+            (producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote) 
+            VALUES (?, ?, ?, ?, ?)`;
+        
+        db.query(sqlLote, [producto_id, cantidad, fechaFormateada, precio_compra || null, numero_lote], (err, result) => {
             if (err) {
-                console.error("Error actualizando fecha:", err);
+                console.error("Error insertando lote:", err);
                 return res.status(500).json({ ok: false, error: err.message });
             }
-            res.json({ ok: true, id: result.insertId, message: "Lote registrado exitosamente" });
+            
+            if (existingStock > 0) {
+                db.query('UPDATE productos SET stock = stock + ? WHERE id = ?', [cantidad, producto_id], (err) => {
+                    if (err) console.error("Error actualizando stock:", err);
+                });
+            }
+            
+            const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
+            db.query(sqlGetMinFecha, [producto_id], (err, fechaResult) => {
+                if (err) {
+                    console.error("Error obteniendo fecha mínima:", err);
+                    return res.status(500).json({ ok: false, error: err.message });
+                }
+                const fechaMin = fechaResult[0]?.fecha_min || null;
+                db.query('UPDATE productos SET fecha_vencimiento = ? WHERE id = ?', [fechaMin, producto_id], (err) => {
+                    if (err) console.error("Error actualizando fecha:", err);
+                    res.json({ ok: true, id: result.insertId, message: "Lote registrado exitosamente" });
+                });
+            });
         });
     });
 });
@@ -482,8 +608,8 @@ app.delete('/api/batches/:id', (req, res) => {
                     });
                 }
                 
-                const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
-                db.query(sqlGetMinFecha, [lote[0].producto_id], (err, result) => {
+                const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL AND id != ?`;
+                db.query(sqlGetMinFecha, [lote[0].producto_id, loteId], (err, result) => {
                     if (err) {
                         return db.rollback(() => {
                             console.error("Error obteniendo fecha mínima:", err);
@@ -544,10 +670,10 @@ app.get('/api/batches', (req, res) => {
 // ========== RUTAS DE VENTAS ==================
 // =============================================
 
-app.get('/api/ventas', (req, res) => {
-    db.query('SELECT * FROM venta ORDER BY fecha_venta DESC', (err, results) => {
+app.get('/api/tickets', (req, res) => {
+    db.query('SELECT v.*, COUNT(dv.id) as cantidad_productos FROM venta v LEFT JOIN detalle_venta dv ON v.id = dv.id_venta GROUP BY v.id ORDER BY v.fecha_venta DESC', (err, results) => {
         if (err) {
-            console.error("Error obteniendo ventas:", err);
+            console.error("Error obteniendo tickets:", err);
             return res.status(500).json({ ok: false, error: err.message });
         }
         res.json({ ok: true, data: results });
@@ -582,7 +708,7 @@ app.post('/api/ventas', (req, res) => {
         const sqlVenta = `INSERT INTO venta (folio, id_usuario, subtotal, iva, total, metodo_pago) 
                           VALUES (?, ?, ?, ?, ?, ?)`;
         
-        db.query(sqlVenta, [folio, id_usuario, subtotal, iva, total, metodo_pago || 'efectivo'], (err, result) => {
+        db.query(sqlVenta, [folio, id_usuario || 2, subtotal, iva || 0, total, metodo_pago || 'efectivo'], (err, result) => {
             if (err) {
                 return db.rollback(() => {
                     console.error("Error insertando venta:", err);
@@ -592,49 +718,64 @@ app.post('/api/ventas', (req, res) => {
             
             const ventaId = result.insertId;
             let detalleCompletado = 0;
+            let errorOcurrido = false;
+            
+            if (!detalle || detalle.length === 0) {
+                return db.rollback(() => {
+                    res.status(400).json({ ok: false, error: "No hay productos en la venta" });
+                });
+            }
             
             for (const item of detalle) {
                 const sqlDetalle = `INSERT INTO detalle_venta (id_venta, id_producto, cantidad, precio_unitario, subtotal) 
                                     VALUES (?, ?, ?, ?, ?)`;
                 
                 db.query(sqlDetalle, [ventaId, item.id_producto, item.cantidad, item.precio_unitario, item.subtotal], (err) => {
-                    if (err) {
-                        return db.rollback(() => {
-                            console.error("Error insertando detalle de venta:", err);
-                            res.status(500).json({ ok: false, error: err.message });
-                        });
-                    }
-                    
-                    db.query('UPDATE productos SET stock = stock - ? WHERE id = ?', [item.cantidad, item.id_producto], (err) => {
-                        if (err) {
+                    if (err || errorOcurrido) {
+                        if (!errorOcurrido) {
+                            errorOcurrido = true;
                             return db.rollback(() => {
-                                console.error("Error actualizando stock:", err);
+                                console.error("Error insertando detalle de venta:", err);
                                 res.status(500).json({ ok: false, error: err.message });
                             });
                         }
-                        
-                        detalleCompletado++;
-                        if (detalleCompletado === detalle.length) {
-                            db.commit(err => {
-                                if (err) {
+                        return;
+                    }
+                    
+                    db.query('UPDATE productos SET stock = stock - ? WHERE id = ? AND stock >= ?', 
+                        [item.cantidad, item.id_producto, item.cantidad], 
+                        (err) => {
+                            if (err || errorOcurrido) {
+                                if (!errorOcurrido) {
+                                    errorOcurrido = true;
                                     return db.rollback(() => {
-                                        console.error("Error en commit:", err);
+                                        console.error("Error actualizando stock:", err);
                                         res.status(500).json({ ok: false, error: err.message });
                                     });
                                 }
-                                res.json({ ok: true, id: ventaId, message: "Venta registrada exitosamente" });
-                            });
+                                return;
+                            }
+                            
+                            detalleCompletado++;
+                            if (detalleCompletado === detalle.length && !errorOcurrido) {
+                                db.commit(err => {
+                                    if (err) {
+                                        return db.rollback(() => {
+                                            console.error("Error en commit:", err);
+                                            res.status(500).json({ ok: false, error: err.message });
+                                        });
+                                    }
+                                    res.json({ ok: true, id: ventaId, message: "Venta registrada exitosamente" });
+                                });
+                            }
                         }
-                    });
+                    );
                 });
             }
         });
     });
 });
 
-// =============================================
-// ========== RUTA PARA ACTUALIZAR STOCK =======
-// =============================================
 app.post('/api/ventas/actualizar-stock', (req, res) => {
     const { productos } = req.body;
     
@@ -683,36 +824,48 @@ app.post('/api/ventas/actualizar-stock', (req, res) => {
 });
 
 // =============================================
-// ========== RUTAS DE AUTENTICACIÓN ===========
+// ========== RUTA PARA GUARDAR PDF ============
 // =============================================
 
-app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "roles.html"));
+app.post('/api/guardar-pdf', upload.single('pdf'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ ok: false, error: 'No se recibió el archivo' });
+        }
+        
+        console.log(`✅ PDF guardado en servidor: ${req.file.filename}`);
+        res.json({ 
+            ok: true, 
+            message: 'PDF guardado exitosamente',
+            path: `/tickets/${req.file.filename}`
+        });
+    } catch (error) {
+        console.error('Error guardando PDF:', error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
 });
 
-app.get("/gestion", (req, res) => {
-    res.sendFile(path.join(__dirname, "gestion.html"));
+// Ruta para listar los tickets guardados
+app.get('/api/tickets-list', async (req, res) => {
+    try {
+        const files = await fs.readdir(ticketsDir);
+        const pdfFiles = files.filter(f => f.endsWith('.pdf')).map(f => ({
+            filename: f,
+            path: `/tickets/${f}`,
+            created: fs.statSync(path.join(ticketsDir, f)).birthtime
+        }));
+        res.json({ ok: true, data: pdfFiles });
+    } catch (error) {
+        res.status(500).json({ ok: false, error: error.message });
+    }
 });
 
-app.get("/alerta", (req, res) => {
-    res.sendFile(path.join(__dirname, "alerta.html"));
-});
+// Ruta para servir los archivos PDF estáticos
+app.use('/tickets', express.static(ticketsDir));
 
-app.get("/inventario", (req, res) => {
-    res.sendFile(path.join(__dirname, "index.html"));
-});
-
-app.get("/dashboard", (req, res) => {
-    res.sendFile(path.join(__dirname, "dashboard.html"));
-});
-
-app.get("/productos", (req, res) => {
-    res.sendFile(path.join(__dirname, "productos.html"));
-});
-
-app.get("/ventas", (req, res) => {
-    res.sendFile(path.join(__dirname, "ventas.html"));
-});
+// =============================================
+// ========== RUTAS DE AUTENTICACIÓN ===========
+// =============================================
 
 app.post("/login_admin", (req, res) => {
     loginGenerico("admin", req, res);
@@ -810,6 +963,10 @@ app.get("/api/db-check", (req, res) => {
     });
 });
 
+// =============================================
+// ========== MANEJO DE ERRORES ================
+// =============================================
+
 app.use((req, res) => {
     res.status(404).json({
         error: "Ruta no encontrada",
@@ -825,6 +982,10 @@ process.on('unhandledRejection', (err) => {
     console.error('❌ Promesa rechazada no manejada:', err);
 });
 
+// =============================================
+// ========== INICIAR SERVIDOR =================
+// =============================================
+
 app.listen(PORT, () => {
     console.log(`
     ╔═══════════════════════════════════════════════════╗
@@ -833,13 +994,16 @@ app.listen(PORT, () => {
     ║   📍 URL: http://localhost:${PORT}                 ║
     ║   📄 Productos: /productos                        ║
     ║   📄 Dashboard: /dashboard                        ║
-    ║   📄 Alertas: /alerta                             ║
+    ║   📄 Alertas: /alertas                            ║
     ║   📄 Ventas: /ventas                              ║
+    ║   📄 Registro Ventas: /registro_ventas            ║
+    ║   📁 Tickets guardados en: ${ticketsDir}    ║
     ║   💵 Moneda: USD ($)                              ║
     ║   ✅ Productos: Se pueden eliminar (CASCADE)      ║
     ║   ✅ Fechas: Se actualizan al editar lote         ║
     ║   📸 Imágenes: Soporte para fotos opcionales      ║
     ║   🛒 Ventas: Punto de venta con tickets PDF       ║
+    ║   💾 PDFs: Se guardan automáticamente en /tickets ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });

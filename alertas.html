@@ -622,7 +622,7 @@
     marcarTodasLeidas.addEventListener('click', marcarTodasComoLeidas);
 
     const volverInventario = document.getElementById('volverInventario');
-    volverInventario.addEventListener('click', () => { window.location.href = 'index.html'; });
+   volverInventario.addEventListener('click', () => { window.location.href = 'productos.html'; });
 
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }
