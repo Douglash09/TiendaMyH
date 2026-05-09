@@ -1045,7 +1045,7 @@
 
     async function renderTabla(productosArray) {
         if (!productosArray.length) { 
-            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">📭 No hay productos registrados</td></tr>'; 
+            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">📭 No hay productos registrados</td></table>'; 
             return; 
         }
         
@@ -1176,7 +1176,6 @@
         loteModal.style.display = 'flex';
     };
     
-    // Función CORREGIDA para abrir agregar lote
     window.abrirAgregarLoteDesdeTabla = async (productoId) => {
         const productoOriginal = productos.find(p => p.id === productoId);
         if (!productoOriginal) return;
@@ -1192,7 +1191,6 @@
         agregarLoteModal.style.display = 'flex';
     };
 
-    // Función CORREGIDA para submit del agregar lote
     agregarLoteForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const numeroLote = document.getElementById('nuevoLoteNumero').value.trim();
@@ -1219,7 +1217,6 @@
         const productoBase = productos.find(p => p.id === productoBaseId);
         if (!productoBase) return;
         
-        // Detectar automáticamente el siguiente formato
         let nuevoFormato = productoBase.unidad_medida;
         let nuevaCantidad = productoBase.cantidad_por_unidad;
         
@@ -1251,7 +1248,7 @@
             categoria: productoBase.categoria,
             precio_compra: precioCompraFinal,
             precio_venta: precioVentaFinal,
-            stock: cantidad,
+            stock: 0, // CRUCIAL: Iniciar stock en 0
             stock_minimo: productoBase.stock_minimo,
             unidad_medida: nuevoFormato,
             cantidad_por_unidad: nuevaCantidad,
@@ -1419,6 +1416,7 @@
         }
     }
 
+    // ========== CORRECCIÓN DEL FORMULARIO DE PRODUCTO ==========
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!validateStep1() || !validateStep2()) {
@@ -1451,23 +1449,24 @@
             proveedor: document.getElementById('proveedor').value,
             ubicacion: document.getElementById('ubicacion').value,
             descripcion: document.getElementById('descripcion').value,
-            fecha_vencimiento: fechaVencimientoLote,
             imagen: imagenData
         };
-        
-        if (!id) {
-            payload.stock = cantidadLote;
-        }
         
         let res, productoId;
         
         if (id) {
-            res = await fetch(`${API_URL}/products/${id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            // EDITAR PRODUCTO EXISTENTE
+            res = await fetch(`${API_URL}/products/${id}`, { 
+                method: 'PUT', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payload) 
+            });
             const data = await res.json();
             if (!data.ok) { alert('❌ Error al actualizar producto: ' + (data.error || '')); return; }
             productoId = parseInt(id);
             
             if (loteIdExistente) {
+                // Actualizar lote existente
                 const loteData = { 
                     producto_id: productoId, 
                     cantidad: cantidadLote, 
@@ -1475,9 +1474,14 @@
                     precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, 
                     numero_lote: numeroLote 
                 };
-                await fetch(`${API_URL}/batches/${loteIdExistente}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
-                alert('✅ Producto actualizado y lote actualizado');
+                await fetch(`${API_URL}/batches/${loteIdExistente}`, { 
+                    method: 'PUT', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(loteData) 
+                });
+                alert('✅ Producto y lote actualizados correctamente');
             } else {
+                // Agregar nuevo lote a producto existente
                 const loteData = { 
                     producto_id: productoId, 
                     cantidad: cantidadLote, 
@@ -1485,16 +1489,32 @@
                     precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, 
                     numero_lote: numeroLote 
                 };
-                await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
-                alert('✅ Producto actualizado y nuevo lote registrado');
+                await fetch(`${API_URL}/batches`, { 
+                    method: 'POST', 
+                    headers: { 'Content-Type': 'application/json' }, 
+                    body: JSON.stringify(loteData) 
+                });
+                alert('✅ Nuevo lote agregado al producto');
             }
         } else {
-            payload.stock = cantidadLote;
-            res = await fetch(`${API_URL}/products`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+            // ========== NUEVO PRODUCTO - CORREGIDO ==========
+            // IMPORTANTE: NO enviar stock en el payload para productos nuevos
+            // El stock se manejará SOLO desde el lote
+            payload.stock = 0; // <-- CRUCIAL: Iniciar stock en 0
+            
+            res = await fetch(`${API_URL}/products`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(payload) 
+            });
             const data = await res.json();
-            if (!data.ok) { alert('❌ Error al crear producto: ' + (data.error || '')); return; }
+            if (!data.ok) { 
+                alert('❌ Error al crear producto: ' + (data.error || '')); 
+                return; 
+            }
             productoId = data.id;
             
+            // Registrar el lote - EL SERVIDOR ASIGNARÁ EL STOCK CORRECTAMENTE
             const loteData = { 
                 producto_id: productoId, 
                 cantidad: cantidadLote, 
@@ -1502,8 +1522,19 @@
                 precio_compra: parseFloat(document.getElementById('lotePrecioCompraTemp').value) || 0, 
                 numero_lote: numeroLote 
             };
-            await fetch(`${API_URL}/batches`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(loteData) });
-            alert('✅ Producto creado y lote registrado');
+            
+            const loteRes = await fetch(`${API_URL}/batches`, { 
+                method: 'POST', 
+                headers: { 'Content-Type': 'application/json' }, 
+                body: JSON.stringify(loteData) 
+            });
+            const loteDataResult = await loteRes.json();
+            
+            if (loteDataResult.ok) {
+                alert(`✅ Producto creado correctamente!\n\n📦 ${payload.nombre}\n🔢 Lote: ${numeroLote}\n📊 Stock inicial: ${cantidadLote} unidades`);
+            } else {
+                alert('⚠️ Producto creado pero hubo un problema con el lote');
+            }
         }
         
         modal.style.display = 'none';
@@ -1661,7 +1692,6 @@
         if (e.target === detallesModal) cerrarModal(detallesModal); 
     });
     
-    // Navegación corregida
     volverDashboard.addEventListener('click', () => { window.location.href = '/dashboard'; });
     irVentas.addEventListener('click', () => { window.location.href = '/ventas'; });
 

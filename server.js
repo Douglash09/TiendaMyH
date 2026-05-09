@@ -430,6 +430,25 @@ app.get('/api/batches/product/:productoId', (req, res) => {
     });
 });
 
+app.get('/api/batches', (req, res) => {
+    const sql = `
+        SELECT l.*, p.nombre as producto_nombre, p.codigo_barras, p.unidad_medida
+        FROM lotes l
+        JOIN productos p ON l.producto_id = p.id
+        ORDER BY l.fecha_vencimiento ASC, l.fecha_entrada ASC
+    `;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error obteniendo lotes:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, data: results });
+    });
+});
+
+// =============================================
+// ========== RUTA POST /api/batches CORREGIDA ==========
+// =============================================
 app.post('/api/batches', (req, res) => {
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
     
@@ -445,7 +464,8 @@ app.post('/api/batches', (req, res) => {
         }
     }
     
-    db.query('SELECT stock, id FROM productos WHERE id = ?', [producto_id], (err, productResult) => {
+    // PRIMERO: Verificar el stock actual del producto
+    db.query('SELECT stock FROM productos WHERE id = ?', [producto_id], (err, productResult) => {
         if (err) {
             console.error("Error verificando producto:", err);
             return res.status(500).json({ ok: false, error: err.message });
@@ -453,6 +473,7 @@ app.post('/api/batches', (req, res) => {
         
         const existingStock = productResult[0]?.stock || 0;
         
+        // SEGUNDO: Insertar el lote
         const sqlLote = `INSERT INTO lotes 
             (producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote) 
             VALUES (?, ?, ?, ?, ?)`;
@@ -463,12 +484,21 @@ app.post('/api/batches', (req, res) => {
                 return res.status(500).json({ ok: false, error: err.message });
             }
             
-            if (existingStock > 0) {
+            // TERCERO: Actualizar el stock del producto (CORREGIDO)
+            // Si el stock actual es 0, asignar directamente. Si no, sumar.
+            if (existingStock === 0) {
+                // Producto NUEVO: asignar stock = cantidad del lote
+                db.query('UPDATE productos SET stock = ? WHERE id = ?', [cantidad, producto_id], (err) => {
+                    if (err) console.error("Error asignando stock inicial:", err);
+                });
+            } else {
+                // Producto EXISTENTE: sumar al stock actual
                 db.query('UPDATE productos SET stock = stock + ? WHERE id = ?', [cantidad, producto_id], (err) => {
-                    if (err) console.error("Error actualizando stock:", err);
+                    if (err) console.error("Error sumando stock:", err);
                 });
             }
             
+            // CUARTO: Actualizar la fecha de vencimiento del producto
             const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
             db.query(sqlGetMinFecha, [producto_id], (err, fechaResult) => {
                 if (err) {
@@ -647,22 +677,6 @@ app.delete('/api/batches/:id', (req, res) => {
                 });
             });
         });
-    });
-});
-
-app.get('/api/batches', (req, res) => {
-    const sql = `
-        SELECT l.*, p.nombre as producto_nombre, p.codigo_barras, p.unidad_medida
-        FROM lotes l
-        JOIN productos p ON l.producto_id = p.id
-        ORDER BY l.fecha_vencimiento ASC, l.fecha_entrada ASC
-    `;
-    db.query(sql, (err, results) => {
-        if (err) {
-            console.error("Error obteniendo lotes:", err);
-            return res.status(500).json({ ok: false, error: err.message });
-        }
-        res.json({ ok: true, data: results });
     });
 });
 
@@ -845,7 +859,6 @@ app.post('/api/guardar-pdf', upload.single('pdf'), (req, res) => {
     }
 });
 
-// Ruta para listar los tickets guardados
 app.get('/api/tickets-list', async (req, res) => {
     try {
         const files = await fs.readdir(ticketsDir);
@@ -860,7 +873,6 @@ app.get('/api/tickets-list', async (req, res) => {
     }
 });
 
-// Ruta para servir los archivos PDF estáticos
 app.use('/tickets', express.static(ticketsDir));
 
 // =============================================
@@ -1004,6 +1016,7 @@ app.listen(PORT, () => {
     ║   📸 Imágenes: Soporte para fotos opcionales      ║
     ║   🛒 Ventas: Punto de venta con tickets PDF       ║
     ║   💾 PDFs: Se guardan automáticamente en /tickets ║
+    ║   🔧 CORREGIDO: Stock ya NO se duplica!           ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });
