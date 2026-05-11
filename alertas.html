@@ -34,31 +34,95 @@
         .btn-warning { background: var(--warning); color: #1a2c3e; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         
-        /* Panel de filtros */
-        .filters-panel { background: var(--card); border-radius: 24px; padding: 20px 28px; margin-bottom: 28px; box-shadow: var(--shadow); }
-        .filters-title { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; justify-content: space-between; }
-        .filters-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin-bottom: 20px; }
-        .filter-group { display: flex; flex-direction: column; gap: 6px; }
-        .filter-group label { font-size: 0.75rem; font-weight: 600; color: var(--muted); }
-        .filter-group select, .filter-group input { padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; }
+        /* Panel de filtros colapsable */
+        .filters-panel {
+            background: var(--card);
+            border-radius: 24px;
+            margin-bottom: 28px;
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .filters-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 24px;
+            cursor: pointer;
+            background: var(--card);
+            border-bottom: 1px solid var(--border);
+            transition: background 0.2s;
+        }
+        .filters-header:hover {
+            background: var(--table-header);
+        }
+        .filters-header h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .filters-header .toggle-icon {
+            transition: transform 0.3s ease;
+            font-size: 1.1rem;
+        }
+        .filters-header .toggle-icon.rotated {
+            transform: rotate(180deg);
+        }
+        .filters-content {
+            padding: 20px 24px;
+            transition: all 0.3s ease;
+        }
+        .filters-content.collapsed {
+            display: none;
+        }
+        .filters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 20px;
+        }
+        .filter-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+        .filter-group label {
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--muted);
+        }
+        .filter-group select, .filter-group input {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+        }
+        .filter-actions {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 10px;
+        }
         
-        /* Notificaciones */
+        /* Notificaciones (solo lectura) */
         .notifications-container { display: flex; flex-direction: column; gap: 16px; margin-bottom: 28px; }
-        .notification-card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 16px; transition: all 0.2s; border-left: 5px solid transparent; position: relative; }
+        .notification-card { background: var(--card); border-radius: 20px; padding: 20px; box-shadow: var(--shadow); display: flex; align-items: flex-start; gap: 16px; transition: all 0.2s; border-left: 5px solid transparent; }
         .notification-card:hover { transform: translateX(5px); }
         .notification-card.alert-stock { border-left-color: var(--warning); }
         .notification-card.alert-expiry { border-left-color: var(--danger); }
         .notification-card.alert-expiry-soon { border-left-color: var(--warning); }
         .notification-card.alert-low-stock { border-left-color: var(--warning); }
         .notification-card.alert-no-stock { border-left-color: var(--danger); }
-        .notification-card.read { opacity: 0.6; background: var(--bg); }
         
         .notification-icon { font-size: 2rem; min-width: 50px; text-align: center; }
         .notification-content { flex: 1; }
         .notification-title { font-weight: 700; font-size: 1rem; margin-bottom: 5px; }
         .notification-details { font-size: 0.85rem; color: var(--muted); margin-bottom: 8px; }
         .notification-message { font-size: 0.9rem; margin-bottom: 10px; }
-        .notification-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; }
         .notification-date { font-size: 0.7rem; color: var(--muted); margin-top: 8px; }
         
         .badge { display: inline-block; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; margin-right: 8px; }
@@ -71,31 +135,14 @@
         .empty-state { text-align: center; padding: 60px 20px; background: var(--card); border-radius: 24px; }
         .empty-state i { font-size: 4rem; color: var(--muted); margin-bottom: 16px; }
         
-        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); justify-content: center; align-items: center; z-index: 1000; }
-        .modal-content { background: var(--card); border-radius: 32px; width: 90%; max-width: 500px; max-height: 85vh; overflow-y: auto; padding: 28px; position: relative; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 2px solid var(--border); padding-bottom: 12px; }
-        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-        .full-width { grid-column: span 2; }
-        .input-group { margin-bottom: 15px; }
-        .input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
-        .input-group input, .input-group select { width: 100%; padding: 12px 16px; border-radius: 16px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
-        .flex-buttons { display: flex; gap: 12px; justify-content: flex-end; margin-top: 20px; }
-        .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 6px; border-radius: 8px; transition: 0.2s; color: var(--muted); }
-        .icon-btn:hover { background: var(--bg); color: var(--primary); }
+        .stats-bar { background: var(--card); border-radius: 16px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+        .stats-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
         
         @media (max-width: 768px) {
             body { padding: 16px; }
             .notification-card { flex-direction: column; }
             .notification-icon { text-align: left; }
-            .form-grid { grid-template-columns: 1fr; }
-            .full-width { grid-column: span 1; }
         }
-        
-        .filter-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 10px; }
-        .stats-bar { background: var(--card); border-radius: 16px; padding: 12px 20px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
-        .stats-item { display: flex; align-items: center; gap: 8px; font-size: 0.85rem; }
-        .mark-all-btn { background: none; border: none; color: var(--primary); cursor: pointer; font-size: 0.8rem; }
-        .mark-all-btn:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
@@ -107,43 +154,38 @@
         </div>
         <div class="header-actions">
             <button class="btn" id="modoOscuroBtn"><i class="fas fa-moon"></i> Modo</button>
-            <button class="btn btn-outline" id="volverInventario"><i class="fas fa-boxes"></i> Volver a Inventario</button>
+            <button class="btn btn-outline" id="volverProductos"><i class="fas fa-boxes"></i> Volver a Productos</button>
         </div>
     </div>
 
-    <!-- Panel de filtros -->
+    <!-- Panel de filtros colapsable -->
     <div class="filters-panel">
-        <div class="filters-title">
+        <div class="filters-header" id="filtersHeader">
             <h3><i class="fas fa-filter"></i> Filtrar alertas</h3>
-            <button class="btn-outline btn-sm" id="limpiarFiltrosBtn"><i class="fas fa-eraser"></i> Limpiar filtros</button>
+            <i class="fas fa-chevron-down toggle-icon" id="toggleFiltersIcon"></i>
         </div>
-        <div class="filters-grid">
-            <div class="filter-group">
-                <label><i class="fas fa-tag"></i> Tipo de alerta</label>
-                <select id="filtroTipo">
-                    <option value="">Todos</option>
-                    <option value="stock">Stock bajo / sin stock</option>
-                    <option value="expiry">Próximos a vencer</option>
-                    <option value="vencido">Vencidos</option>
-                </select>
+        <div class="filters-content" id="filtersContent">
+            <div class="filters-grid">
+                <div class="filter-group">
+                    <label><i class="fas fa-tag"></i> Tipo de alerta</label>
+                    <select id="filtroTipo">
+                        <option value="">Todos</option>
+                        <option value="stock">Stock bajo / sin stock</option>
+                        <option value="expiry">Próximos a vencer</option>
+                        <option value="vencido">Vencidos</option>
+                    </select>
+                </div>
+                <div class="filter-group">
+                    <label><i class="fas fa-box"></i> Categoría</label>
+                    <select id="filtroCategoria">
+                        <option value="">Todas</option>
+                    </select>
+                </div>
             </div>
-            <div class="filter-group">
-                <label><i class="fas fa-box"></i> Categoría</label>
-                <select id="filtroCategoria">
-                    <option value="">Todas</option>
-                </select>
+            <div class="filter-actions">
+                <button class="btn" id="aplicarFiltrosBtn"><i class="fas fa-search"></i> Aplicar filtros</button>
+                <button class="btn-outline" id="limpiarFiltrosBtn"><i class="fas fa-eraser"></i> Limpiar filtros</button>
             </div>
-            <div class="filter-group">
-                <label><i class="fas fa-flag-checkered"></i> Estado</label>
-                <select id="filtroEstado">
-                    <option value="">Todos</option>
-                    <option value="no_leido">No leídas</option>
-                    <option value="leido">Leídas</option>
-                </select>
-            </div>
-        </div>
-        <div class="filter-actions">
-            <button class="btn" id="aplicarFiltrosBtn"><i class="fas fa-search"></i> Aplicar filtros</button>
         </div>
     </div>
 
@@ -151,8 +193,6 @@
     <div class="stats-bar">
         <div class="stats-item"><i class="fas fa-bell"></i> <span id="totalAlertas">0</span> alertas totales</div>
         <div class="stats-item"><i class="fas fa-exclamation-triangle" style="color: var(--danger);"></i> <span id="alertasCriticas">0</span> críticas</div>
-        <div class="stats-item"><i class="fas fa-clock" style="color: var(--warning);"></i> <span id="alertasPendientes">0</span> no leídas</div>
-        <button class="mark-all-btn" id="marcarTodasLeidas"><i class="fas fa-check-double"></i> Marcar todas como leídas</button>
     </div>
 
     <!-- Lista de notificaciones -->
@@ -162,61 +202,6 @@
             <h3>¡Todo en orden!</h3>
             <p>No hay alertas de inventario en este momento.</p>
         </div>
-    </div>
-</div>
-
-<!-- MODAL EDITAR STOCK -->
-<div id="editStockModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Editar stock del producto</h3>
-            <button class="icon-btn" id="closeEditStockModalBtn">&times;</button>
-        </div>
-        <form id="editStockForm">
-            <input type="hidden" id="editProductoId">
-            <div class="input-group full-width">
-                <label>Producto</label>
-                <input type="text" id="editProductoNombre" readonly style="background: var(--input-readonly-bg);">
-            </div>
-            <div class="input-group">
-                <label>Stock actual</label>
-                <input type="number" id="editStockActual" min="0" required>
-            </div>
-            <div class="input-group">
-                <label>Stock mínimo</label>
-                <input type="number" id="editStockMinimo" min="0" required>
-            </div>
-            <div class="flex-buttons">
-                <button type="button" class="btn-outline" id="cancelEditStockBtn">Cancelar</button>
-                <button type="submit" class="btn btn-success">Guardar cambios</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- MODAL EDITAR FECHA DE VENCIMIENTO -->
-<div id="editExpiryModal" class="modal">
-    <div class="modal-content">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Editar fecha de vencimiento</h3>
-            <button class="icon-btn" id="closeEditExpiryModalBtn">&times;</button>
-        </div>
-        <form id="editExpiryForm">
-            <input type="hidden" id="editLoteId">
-            <input type="hidden" id="editProductoIdExpiry">
-            <div class="input-group full-width">
-                <label>Producto / Lote</label>
-                <input type="text" id="editLoteInfo" readonly style="background: var(--input-readonly-bg);">
-            </div>
-            <div class="input-group">
-                <label>Nueva fecha de vencimiento</label>
-                <input type="date" id="editFechaVencimiento" required>
-            </div>
-            <div class="flex-buttons">
-                <button type="button" class="btn-outline" id="cancelEditExpiryBtn">Cancelar</button>
-                <button type="submit" class="btn btn-success">Guardar cambios</button>
-            </div>
-        </form>
     </div>
 </div>
 
@@ -231,29 +216,38 @@
     const notificationsContainer = document.getElementById('notificationsContainer');
     const filtroTipo = document.getElementById('filtroTipo');
     const filtroCategoria = document.getElementById('filtroCategoria');
-    const filtroEstado = document.getElementById('filtroEstado');
     const aplicarFiltrosBtn = document.getElementById('aplicarFiltrosBtn');
     const limpiarFiltrosBtn = document.getElementById('limpiarFiltrosBtn');
-    const marcarTodasLeidas = document.getElementById('marcarTodasLeidas');
     const totalAlertasSpan = document.getElementById('totalAlertas');
     const alertasCriticasSpan = document.getElementById('alertasCriticas');
-    const alertasPendientesSpan = document.getElementById('alertasPendientes');
     
-    // Modales
-    const editStockModal = document.getElementById('editStockModal');
-    const editExpiryModal = document.getElementById('editExpiryModal');
-    const closeEditStockModalBtn = document.getElementById('closeEditStockModalBtn');
-    const closeEditExpiryModalBtn = document.getElementById('closeEditExpiryModalBtn');
-    const cancelEditStockBtn = document.getElementById('cancelEditStockBtn');
-    const cancelEditExpiryBtn = document.getElementById('cancelEditExpiryBtn');
-    const editStockForm = document.getElementById('editStockForm');
-    const editExpiryForm = document.getElementById('editExpiryForm');
+    // Elementos del colapso
+    const filtersHeader = document.getElementById('filtersHeader');
+    const filtersContent = document.getElementById('filtersContent');
+    const toggleFiltersIcon = document.getElementById('toggleFiltersIcon');
+    let filtersCollapsed = localStorage.getItem('filtersCollapsed') === 'true';
     
-    // LocalStorage para estado de lectura
-    let alertasLeidas = JSON.parse(localStorage.getItem('alertasLeidas') || '{}');
-
-    function guardarEstadoLectura() {
-        localStorage.setItem('alertasLeidas', JSON.stringify(alertasLeidas));
+    function toggleFilters() {
+        filtersCollapsed = !filtersCollapsed;
+        localStorage.setItem('filtersCollapsed', filtersCollapsed);
+        if (filtersCollapsed) {
+            filtersContent.classList.add('collapsed');
+            toggleFiltersIcon.classList.add('rotated');
+        } else {
+            filtersContent.classList.remove('collapsed');
+            toggleFiltersIcon.classList.remove('rotated');
+        }
+    }
+    
+    function initFiltersCollapse() {
+        if (filtersCollapsed) {
+            filtersContent.classList.add('collapsed');
+            toggleFiltersIcon.classList.add('rotated');
+        } else {
+            filtersContent.classList.remove('collapsed');
+            toggleFiltersIcon.classList.remove('rotated');
+        }
+        filtersHeader.addEventListener('click', toggleFilters);
     }
 
     function generarIdAlerta(productoId, tipo, loteId = null) {
@@ -275,7 +269,7 @@
                     productoId: producto.id,
                     tipo: 'no_stock',
                     titulo: '⚠️ Producto sin stock',
-                    mensaje: `${producto.nombre} (${producto.formato_venta || 'Unidad'} x${producto.cantidad_formato || 1}) - No hay unidades disponibles.`,
+                    mensaje: `${producto.nombre} - No hay unidades disponibles.`,
                     detalles: `Stock actual: 0 | Stock mínimo: ${producto.stock_minimo}`,
                     gravedad: 'critica',
                     fecha: new Date().toISOString(),
@@ -288,7 +282,7 @@
                     productoId: producto.id,
                     tipo: 'low_stock',
                     titulo: '📦 Stock bajo',
-                    mensaje: `${producto.nombre} (${producto.formato_venta || 'Unidad'} x${producto.cantidad_formato || 1}) - El stock está por debajo del mínimo.`,
+                    mensaje: `${producto.nombre} - El stock está por debajo del mínimo.`,
                     detalles: `Stock actual: ${producto.stock} | Stock mínimo: ${producto.stock_minimo}`,
                     gravedad: 'advertencia',
                     fecha: new Date().toISOString(),
@@ -336,15 +330,6 @@
             }
         }
         
-        // Restaurar estado de lectura
-        for (const notif of nuevasNotificaciones) {
-            if (alertasLeidas[notif.id]) {
-                notif.leida = true;
-            } else {
-                notif.leida = false;
-            }
-        }
-        
         notificaciones = nuevasNotificaciones;
         return notificaciones;
     }
@@ -352,10 +337,8 @@
     function actualizarEstadisticas() {
         const total = notificaciones.length;
         const criticas = notificaciones.filter(n => n.gravedad === 'critica').length;
-        const pendientes = notificaciones.filter(n => !n.leida).length;
         totalAlertasSpan.textContent = total;
         alertasCriticasSpan.textContent = criticas;
-        alertasPendientesSpan.textContent = pendientes;
     }
 
     function getIconForType(tipo, gravedad) {
@@ -385,26 +368,9 @@
         }
         
         notificationsContainer.innerHTML = notificacionesFiltradas.map(notif => {
-            const cardClass = `notification-card ${!notif.leida ? '' : 'read'} alert-${notif.tipo}`;
+            const cardClass = `notification-card alert-${notif.tipo}`;
             const fecha = new Date(notif.fecha);
             const fechaStr = fecha.toLocaleDateString() + ' ' + fecha.toLocaleTimeString();
-            
-            let accionesHtml = '';
-            if (notif.tipo === 'no_stock' || notif.tipo === 'low_stock') {
-                accionesHtml = `
-                    <div class="notification-actions">
-                        <button class="btn-warning btn-sm" onclick="abrirEditarStock(${notif.productoId}, '${escapeHtml(notif.producto.nombre)}', ${notif.producto.stock}, ${notif.producto.stock_minimo})"><i class="fas fa-edit"></i> Editar stock</button>
-                        <button class="btn-outline btn-sm" onclick="marcarComoLeida('${notif.id}')"><i class="fas fa-check"></i> Marcar como leída</button>
-                        <button class="btn-danger btn-sm" onclick="eliminarAlerta('${notif.id}')"><i class="fas fa-trash"></i> Eliminar</button>
-                    </div>`;
-            } else {
-                accionesHtml = `
-                    <div class="notification-actions">
-                        <button class="btn-warning btn-sm" onclick="abrirEditarFechaVencimiento(${notif.productoId}, ${notif.loteId}, '${escapeHtml(notif.producto.nombre)}', '${escapeHtml(notif.lote?.numero_lote || '')}', '${notif.lote?.fecha_vencimiento || ''}')"><i class="fas fa-calendar-alt"></i> Editar fecha</button>
-                        <button class="btn-outline btn-sm" onclick="marcarComoLeida('${notif.id}')"><i class="fas fa-check"></i> Marcar como leída</button>
-                        <button class="btn-danger btn-sm" onclick="eliminarAlerta('${notif.id}')"><i class="fas fa-trash"></i> Eliminar</button>
-                    </div>`;
-            }
             
             return `
                 <div class="${cardClass}" data-id="${notif.id}">
@@ -416,7 +382,6 @@
                         </div>
                         <div class="notification-message">${escapeHtml(notif.mensaje)}</div>
                         <div class="notification-details">📊 ${escapeHtml(notif.detalles)}</div>
-                        ${accionesHtml}
                         <div class="notification-date"><i class="far fa-clock"></i> ${fechaStr}</div>
                     </div>
                 </div>
@@ -427,7 +392,6 @@
     function aplicarFiltros() {
         const tipo = filtroTipo.value;
         const categoria = filtroCategoria.value;
-        const estado = filtroEstado.value;
         
         notificacionesFiltradas = notificaciones.filter(notif => {
             if (tipo) {
@@ -436,10 +400,6 @@
                 if (tipo === 'vencido' && notif.tipo !== 'expired') return false;
             }
             if (categoria && notif.producto.categoria !== categoria) return false;
-            if (estado) {
-                if (estado === 'no_leido' && notif.leida) return false;
-                if (estado === 'leido' && !notif.leida) return false;
-            }
             return true;
         });
         
@@ -450,124 +410,8 @@
     function limpiarFiltros() {
         filtroTipo.value = '';
         filtroCategoria.value = '';
-        filtroEstado.value = '';
         aplicarFiltros();
     }
-
-    window.marcarComoLeida = (id) => {
-        const notif = notificaciones.find(n => n.id === id);
-        if (notif) {
-            notif.leida = true;
-            alertasLeidas[notif.id] = true;
-            guardarEstadoLectura();
-            aplicarFiltros();
-        }
-    };
-
-    function marcarTodasComoLeidas() {
-        for (const notif of notificaciones) {
-            notif.leida = true;
-            alertasLeidas[notif.id] = true;
-        }
-        guardarEstadoLectura();
-        aplicarFiltros();
-    }
-
-    window.eliminarAlerta = (id) => {
-        if (confirm('¿Eliminar esta alerta permanentemente?')) {
-            notificaciones = notificaciones.filter(n => n.id !== id);
-            delete alertasLeidas[id];
-            guardarEstadoLectura();
-            aplicarFiltros();
-        }
-    };
-
-    window.abrirEditarStock = (productoId, nombre, stockActual, stockMinimo) => {
-        document.getElementById('editProductoId').value = productoId;
-        document.getElementById('editProductoNombre').value = nombre;
-        document.getElementById('editStockActual').value = stockActual;
-        document.getElementById('editStockMinimo').value = stockMinimo;
-        editStockModal.style.display = 'flex';
-    };
-
-    window.abrirEditarFechaVencimiento = (productoId, loteId, productoNombre, loteNumero, fechaActual) => {
-        document.getElementById('editLoteId').value = loteId;
-        document.getElementById('editProductoIdExpiry').value = productoId;
-        document.getElementById('editLoteInfo').value = `${productoNombre} - Lote ${loteNumero}`;
-        if (fechaActual) {
-            const fecha = new Date(fechaActual);
-            const fechaFormateada = fecha.toISOString().split('T')[0];
-            document.getElementById('editFechaVencimiento').value = fechaFormateada;
-        } else {
-            document.getElementById('editFechaVencimiento').value = '';
-        }
-        editExpiryModal.style.display = 'flex';
-    };
-
-    editStockForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const productoId = document.getElementById('editProductoId').value;
-        const nuevoStock = parseInt(document.getElementById('editStockActual').value);
-        const nuevoStockMinimo = parseInt(document.getElementById('editStockMinimo').value);
-        
-        const producto = productos.find(p => p.id == productoId);
-        if (!producto) return;
-        
-        const payload = {
-            ...producto,
-            stock: nuevoStock,
-            stock_minimo: nuevoStockMinimo
-        };
-        delete payload.id;
-        delete payload.created_at;
-        delete payload.updated_at;
-        
-        const res = await fetch(`${API_URL}/products/${productoId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (data.ok) {
-            alert('✅ Stock actualizado correctamente');
-            editStockModal.style.display = 'none';
-            await cargarDatos();
-        } else {
-            alert('❌ Error al actualizar el stock');
-        }
-    });
-
-    editExpiryForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const loteId = document.getElementById('editLoteId').value;
-        const productoId = document.getElementById('editProductoIdExpiry').value;
-        const nuevaFecha = document.getElementById('editFechaVencimiento').value || null;
-        
-        const lote = lotesPorProducto[productoId]?.find(l => l.id == loteId);
-        if (!lote) return;
-        
-        const loteData = {
-            producto_id: parseInt(productoId),
-            cantidad: lote.cantidad,
-            fecha_vencimiento: nuevaFecha,
-            precio_compra: lote.precio_compra,
-            numero_lote: lote.numero_lote
-        };
-        
-        const res = await fetch(`${API_URL}/batches/${loteId}`, {
-            method: 'PUT',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(loteData)
-        });
-        const data = await res.json();
-        if (data.ok) {
-            alert('✅ Fecha de vencimiento actualizada correctamente');
-            editExpiryModal.style.display = 'none';
-            await cargarDatos();
-        } else {
-            alert('❌ Error al actualizar la fecha de vencimiento');
-        }
-    });
 
     function actualizarSelectoresFiltros() {
         const categorias = [...new Set(productos.map(p => p.categoria).filter(c => c))];
@@ -610,25 +454,18 @@
 
     function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
-    function cerrarModal(modalElement) { modalElement.style.display = 'none'; }
-    closeEditStockModalBtn.addEventListener('click', () => cerrarModal(editStockModal));
-    closeEditExpiryModalBtn.addEventListener('click', () => cerrarModal(editExpiryModal));
-    cancelEditStockBtn.addEventListener('click', () => cerrarModal(editStockModal));
-    cancelEditExpiryBtn.addEventListener('click', () => cerrarModal(editExpiryModal));
-    window.addEventListener('click', (e) => { if (e.target === editStockModal) cerrarModal(editStockModal); if (e.target === editExpiryModal) cerrarModal(editExpiryModal); });
-
     aplicarFiltrosBtn.addEventListener('click', aplicarFiltros);
     limpiarFiltrosBtn.addEventListener('click', limpiarFiltros);
-    marcarTodasLeidas.addEventListener('click', marcarTodasComoLeidas);
 
-    const volverInventario = document.getElementById('volverInventario');
-   volverInventario.addEventListener('click', () => { window.location.href = 'productos.html'; });
+    const volverProductos = document.getElementById('volverProductos');
+    volverProductos.addEventListener('click', () => { window.location.href = 'productos_empleado.html'; });
 
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }
     if (localStorage.getItem('modoSupermercado') === 'true') { document.body.classList.add('dark'); modoBtn.innerHTML = '<i class="fas fa-sun"></i> Claro'; }
     modoBtn.addEventListener('click', toggleModo);
 
+    initFiltersCollapse();
     cargarDatos();
 </script>
 </body>

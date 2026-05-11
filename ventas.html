@@ -154,8 +154,6 @@
         </div>
         <div class="top-buttons">
             <button class="btn btn-outline" id="modoOscuroBtn"><i class="fas fa-moon"></i> Oscuro</button>
-            <button class="btn btn-outline" id="volverInventario"><i class="fas fa-boxes"></i> Inventario</button>
-            <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
             <button class="btn btn-outline" id="verRegistroVentas"><i class="fas fa-receipt"></i> Registro</button>
         </div>
     </div>
@@ -868,14 +866,6 @@
     
     finalizarVentaBtn.addEventListener('click', finalizarVenta);
     clearCartBtn.addEventListener('click', limpiarCarrito);
-    
-    document.getElementById('volverInventario')?.addEventListener('click', () => {
-        window.location.href = '/productos';
-    });
-    
-    document.getElementById('volverDashboard')?.addEventListener('click', () => {
-        window.location.href = '/dashboard';
-    });
     
     document.getElementById('verRegistroVentas')?.addEventListener('click', () => {
         window.location.href = '/registro_ventas';

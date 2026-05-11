@@ -1,0 +1,28 @@
+[
+  {
+    "nombre": "REPORTE_VENTAS_2026-05-11-09-12-59.pdf",
+    "periodo": "1/5/2026 al 31/5/2026",
+    "periodoTipo": "mes",
+    "totalVentas": 135.4,
+    "totalCosto": 96.75000000000001,
+    "gananciaTotal": 38.64999999999999,
+    "margenGanancia": 28.545051698670598,
+    "cantidadVentas": 21,
+    "totalProductosVendidos": 43,
+    "fechaGeneracion": "2026-05-11T09:12:59.891Z",
+    "rutaArchivo": "C:\\Users\\omar0\\Documents\\GitHub\\TiendaMyH\\reportes\\REPORTE_VENTAS_2026-05-11-09-12-59.pdf"
+  },
+  {
+    "nombre": "REPORTE_VENTAS_2026-05-11-09-08-22.pdf",
+    "periodo": "1/5/2026 al 31/5/2026",
+    "periodoTipo": "mes",
+    "totalVentas": 135.4,
+    "totalCosto": 96.75000000000001,
+    "gananciaTotal": 38.64999999999999,
+    "margenGanancia": 28.545051698670598,
+    "cantidadVentas": 21,
+    "totalProductosVendidos": 43,
+    "fechaGeneracion": "2026-05-11T09:08:22.001Z",
+    "rutaArchivo": "C:\\Users\\omar0\\Documents\\GitHub\\TiendaMyH\\reportes\\REPORTE_VENTAS_2026-05-11-09-08-22.pdf"
+  }
+]

@@ -24,6 +24,11 @@ const ticketsDir = path.join(__dirname, 'tickets');
 fs.ensureDirSync(ticketsDir);
 console.log(`📁 Carpeta de tickets: ${ticketsDir}`);
 
+// Carpeta de reportes
+const reportesDir = "C:/Users/omar0/Documents/GitHub/TiendaMyH/reportes";
+fs.ensureDirSync(reportesDir);
+console.log(`📁 Carpeta de reportes: ${reportesDir}`);
+
 // ===== CONFIGURACIÓN DE MULTER PARA PDFs =====
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
@@ -34,6 +39,17 @@ const storage = multer.diskStorage({
     }
 });
 const upload = multer({ storage: storage });
+
+// Configuración de multer para reportes PDF
+const storageReportes = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, reportesDir)
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.originalname)
+    }
+});
+const uploadReporte = multer({ storage: storageReportes });
 
 db.connect(err => {
     if (err) {
@@ -49,6 +65,7 @@ db.connect(err => {
     crearTablaDetalleVenta();
     crearTablaUsuarios();
     crearTablaRoles();
+    crearTablaReportes();
     insertarDatosDefault();
 });
 
@@ -204,6 +221,31 @@ function crearTablaDetalleVenta() {
     db.query(sql, (err) => {
         if (err) console.error("❌ Error creando tabla detalle_venta:", err.message);
         else console.log("✅ Tabla detalle_venta lista");
+    });
+}
+
+function crearTablaReportes() {
+    const sql = `
+        CREATE TABLE IF NOT EXISTS reportes_ventas (
+            id INT PRIMARY KEY AUTO_INCREMENT,
+            nombre_archivo VARCHAR(255) NOT NULL,
+            ruta_archivo VARCHAR(500) NOT NULL,
+            fecha_inicio DATE NOT NULL,
+            fecha_fin DATE NOT NULL,
+            periodo VARCHAR(100) NOT NULL,
+            total_ventas INT NOT NULL DEFAULT 0,
+            monto_total DECIMAL(10,2) NOT NULL DEFAULT 0,
+            ganancia_total DECIMAL(10,2) NOT NULL DEFAULT 0,
+            productos_vendidos INT NOT NULL DEFAULT 0,
+            generado_por VARCHAR(100),
+            fecha_generacion TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            INDEX idx_fecha_generacion (fecha_generacion),
+            INDEX idx_periodo (periodo)
+        )
+    `;
+    db.query(sql, (err) => {
+        if (err) console.error("❌ Error creando tabla reportes_ventas:", err.message);
+        else console.log("✅ Tabla reportes_ventas lista");
     });
 }
 
@@ -447,9 +489,6 @@ app.get('/api/batches', (req, res) => {
     });
 });
 
-// =============================================
-// ========== RUTA POST /api/batches CORREGIDA ==========
-// =============================================
 app.post('/api/batches', (req, res) => {
     const { producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote } = req.body;
     
@@ -465,7 +504,6 @@ app.post('/api/batches', (req, res) => {
         }
     }
     
-    // PRIMERO: Verificar el stock actual del producto
     db.query('SELECT stock FROM productos WHERE id = ?', [producto_id], (err, productResult) => {
         if (err) {
             console.error("Error verificando producto:", err);
@@ -474,7 +512,6 @@ app.post('/api/batches', (req, res) => {
         
         const existingStock = productResult[0]?.stock || 0;
         
-        // SEGUNDO: Insertar el lote
         const sqlLote = `INSERT INTO lotes 
             (producto_id, cantidad, fecha_vencimiento, precio_compra, numero_lote) 
             VALUES (?, ?, ?, ?, ?)`;
@@ -485,21 +522,16 @@ app.post('/api/batches', (req, res) => {
                 return res.status(500).json({ ok: false, error: err.message });
             }
             
-            // TERCERO: Actualizar el stock del producto (CORREGIDO)
-            // Si el stock actual es 0, asignar directamente. Si no, sumar.
             if (existingStock === 0) {
-                // Producto NUEVO: asignar stock = cantidad del lote
                 db.query('UPDATE productos SET stock = ? WHERE id = ?', [cantidad, producto_id], (err) => {
                     if (err) console.error("Error asignando stock inicial:", err);
                 });
             } else {
-                // Producto EXISTENTE: sumar al stock actual
                 db.query('UPDATE productos SET stock = stock + ? WHERE id = ?', [cantidad, producto_id], (err) => {
                     if (err) console.error("Error sumando stock:", err);
                 });
             }
             
-            // CUARTO: Actualizar la fecha de vencimiento del producto
             const sqlGetMinFecha = `SELECT MIN(fecha_vencimiento) as fecha_min FROM lotes WHERE producto_id = ? AND fecha_vencimiento IS NOT NULL`;
             db.query(sqlGetMinFecha, [producto_id], (err, fechaResult) => {
                 if (err) {
@@ -875,6 +907,97 @@ app.get('/api/tickets-list', async (req, res) => {
 });
 
 app.use('/tickets', express.static(ticketsDir));
+app.use('/reportes', express.static(reportesDir));
+
+// =============================================
+// ========== RUTAS DE REPORTES ================
+// =============================================
+
+// Guardar reporte generado
+app.post('/api/reportes/guardar', uploadReporte.single('reporte'), (req, res) => {
+    try {
+        if (!req.file) {
+            return res.status(400).json({ ok: false, error: 'No se recibió el archivo' });
+        }
+        
+        const { fecha_inicio, fecha_fin, periodo, total_ventas, monto_total, ganancia_total, productos_vendidos, generado_por } = req.body;
+        
+        const sql = `INSERT INTO reportes_ventas 
+            (nombre_archivo, ruta_archivo, fecha_inicio, fecha_fin, periodo, total_ventas, monto_total, ganancia_total, productos_vendidos, generado_por)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        
+        db.query(sql, [
+            req.file.filename,
+            `/reportes/${req.file.filename}`,
+            fecha_inicio,
+            fecha_fin,
+            periodo,
+            total_ventas || 0,
+            monto_total || 0,
+            ganancia_total || 0,
+            productos_vendidos || 0,
+            generado_por || 'Sistema'
+        ], (err, result) => {
+            if (err) {
+                console.error("Error guardando reporte:", err);
+                return res.status(500).json({ ok: false, error: err.message });
+            }
+            
+            console.log(`✅ Reporte guardado: ${req.file.filename}`);
+            res.json({ 
+                ok: true, 
+                id: result.insertId,
+                message: 'Reporte guardado exitosamente',
+                path: `/reportes/${req.file.filename}`
+            });
+        });
+    } catch (error) {
+        console.error('Error guardando reporte:', error);
+        res.status(500).json({ ok: false, error: error.message });
+    }
+});
+
+// Obtener todos los reportes guardados
+app.get('/api/reportes', (req, res) => {
+    const sql = `SELECT * FROM reportes_ventas ORDER BY fecha_generacion DESC`;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error obteniendo reportes:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, data: results });
+    });
+});
+
+// Eliminar reporte
+app.delete('/api/reportes/:id', (req, res) => {
+    const { id } = req.params;
+    
+    db.query('SELECT nombre_archivo, ruta_archivo FROM reportes_ventas WHERE id = ?', [id], (err, result) => {
+        if (err) {
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        if (result.length === 0) {
+            return res.status(404).json({ ok: false, error: "Reporte no encontrado" });
+        }
+        
+        const nombreArchivo = result[0].nombre_archivo;
+        const rutaCompleta = path.join(reportesDir, nombreArchivo);
+        
+        fs.unlink(rutaCompleta, (err) => {
+            if (err && err.code !== 'ENOENT') {
+                console.error("Error eliminando archivo:", err);
+            }
+            
+            db.query('DELETE FROM reportes_ventas WHERE id = ?', [id], (err) => {
+                if (err) {
+                    return res.status(500).json({ ok: false, error: err.message });
+                }
+                res.json({ ok: true, message: "Reporte eliminado exitosamente" });
+            });
+        });
+    });
+});
 
 // =============================================
 // ========== RUTAS DE AUTENTICACIÓN ===========
@@ -1056,7 +1179,7 @@ app.post('/api/usuarios', async (req, res) => {
     }
 });
 
-// Actualizar usuario COMPLETO (incluye cambio de usuario, contraseña y fechas)
+// Actualizar usuario COMPLETO
 app.put('/api/usuarios/:id', async (req, res) => {
     const { id } = req.params;
     const { id_rol, usuario, nombre_completo, email, telefono, direccion, fecha_nacimiento, fecha_contratacion, activo, password } = req.body;
@@ -1126,7 +1249,7 @@ app.put('/api/usuarios/:id', async (req, res) => {
     });
 });
 
-// Actualizar solo estado del usuario (activar/desactivar)
+// Actualizar solo estado del usuario
 app.put('/api/usuarios/:id/estado', (req, res) => {
     const { id } = req.params;
     const { activo } = req.body;
@@ -1192,6 +1315,7 @@ app.listen(PORT, () => {
     ║   📄 Registro Ventas: /registro_ventas            ║
     ║   📄 Usuarios: /usuarios                          ║
     ║   📁 Tickets guardados en: ${ticketsDir}    ║
+    ║   📁 Reportes guardados en: ${reportesDir}  ║
     ║   💵 Moneda: USD ($)                              ║
     ║   ✅ Productos: Se pueden eliminar (CASCADE)      ║
     ║   ✅ Fechas: Se actualizan al editar lote         ║
@@ -1202,6 +1326,7 @@ app.listen(PORT, () => {
     ║   🔧 CORREGIDO: Stock ya NO se duplica!           ║
     ║   ✏️  EDITAR USUARIO: Nombre de usuario editable   ║
     ║   📅 FECHAS: Nacimiento y contratación corregidas ║
+    ║   📊 REPORTES: Guardados en DB y carpeta          ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });
