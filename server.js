@@ -250,6 +250,7 @@ app.get("/registro_ventas", (req, res) => { res.sendFile(path.join(__dirname, "r
 app.get("/registro_ventas.html", (req, res) => { res.sendFile(path.join(__dirname, "registro_ventas.html")); });
 app.get("/login_admin.html", (req, res) => { res.sendFile(path.join(__dirname, "login_admin.html")); });
 app.get("/login_empleado.html", (req, res) => { res.sendFile(path.join(__dirname, "login_empleado.html")); });
+app.get("/usuarios", (req, res) => { res.sendFile(path.join(__dirname, "usuarios.html")); });
 
 // =============================================
 // ========== RUTAS DE PRODUCTOS ===============
@@ -976,6 +977,186 @@ app.get("/api/db-check", (req, res) => {
 });
 
 // =============================================
+// ========== RUTAS DE USUARIOS ================
+// =============================================
+
+// Obtener todos los usuarios
+app.get('/api/usuarios', (req, res) => {
+    const sql = `
+        SELECT u.id, u.id_rol, u.usuario, u.nombre_completo, u.email, u.telefono, 
+               u.direccion, u.fecha_nacimiento, u.fecha_contratacion, u.activo,
+               u.fecha_creacion, u.ultimo_acceso, r.nombre_rol as rol
+        FROM usuarios u
+        INNER JOIN roles r ON u.id_rol = r.id
+        ORDER BY u.id DESC
+    `;
+    db.query(sql, (err, results) => {
+        if (err) {
+            console.error("Error obteniendo usuarios:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, data: results });
+    });
+});
+
+// Obtener roles
+app.get('/api/roles', (req, res) => {
+    db.query('SELECT * FROM roles ORDER BY id', (err, results) => {
+        if (err) {
+            console.error("Error obteniendo roles:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, data: results });
+    });
+});
+
+// Crear nuevo usuario
+app.post('/api/usuarios', async (req, res) => {
+    const { 
+        id_rol, usuario, password, nombre_completo, 
+        email, telefono, direccion, fecha_nacimiento, fecha_contratacion 
+    } = req.body;
+    
+    if (!usuario || !password || !nombre_completo || !id_rol) {
+        return res.status(400).json({ ok: false, error: "Faltan campos obligatorios" });
+    }
+    
+    if (usuario.length < 3) {
+        return res.status(400).json({ ok: false, error: "El usuario debe tener al menos 3 caracteres" });
+    }
+    
+    if (password.length < 4) {
+        return res.status(400).json({ ok: false, error: "La contraseña debe tener al menos 4 caracteres" });
+    }
+    
+    try {
+        const hashedPassword = await bcrypt.hash(password, 10);
+        
+        const sql = `INSERT INTO usuarios 
+            (id_rol, usuario, password, nombre_completo, email, telefono, direccion, fecha_nacimiento, fecha_contratacion, activo)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)`;
+        
+        db.query(sql, [
+            id_rol, usuario, hashedPassword, nombre_completo, 
+            email || null, telefono || null, direccion || null, 
+            fecha_nacimiento || null, fecha_contratacion || null
+        ], (err, result) => {
+            if (err) {
+                console.error("Error creando usuario:", err);
+                if (err.code === 'ER_DUP_ENTRY') {
+                    return res.status(400).json({ ok: false, error: "El nombre de usuario ya existe" });
+                }
+                return res.status(500).json({ ok: false, error: err.message });
+            }
+            res.json({ ok: true, id: result.insertId, message: "Usuario creado exitosamente" });
+        });
+    } catch (error) {
+        console.error("Error:", error);
+        res.status(500).json({ ok: false, error: "Error interno del servidor" });
+    }
+});
+
+// Actualizar usuario COMPLETO (incluye cambio de usuario, contraseña y fechas)
+app.put('/api/usuarios/:id', async (req, res) => {
+    const { id } = req.params;
+    const { id_rol, usuario, nombre_completo, email, telefono, direccion, fecha_nacimiento, fecha_contratacion, activo, password } = req.body;
+    
+    if (!id_rol || !nombre_completo || !usuario) {
+        return res.status(400).json({ ok: false, error: "Faltan campos obligatorios" });
+    }
+    
+    if (usuario.length < 3) {
+        return res.status(400).json({ ok: false, error: "El usuario debe tener al menos 3 caracteres" });
+    }
+    
+    let updateFields = [];
+    let values = [];
+    
+    updateFields.push('id_rol = ?');
+    values.push(id_rol);
+    
+    updateFields.push('usuario = ?');
+    values.push(usuario);
+    
+    updateFields.push('nombre_completo = ?');
+    values.push(nombre_completo);
+    
+    updateFields.push('email = ?');
+    values.push(email || null);
+    
+    updateFields.push('telefono = ?');
+    values.push(telefono || null);
+    
+    updateFields.push('direccion = ?');
+    values.push(direccion || null);
+    
+    updateFields.push('fecha_nacimiento = ?');
+    values.push(fecha_nacimiento || null);
+    
+    updateFields.push('fecha_contratacion = ?');
+    values.push(fecha_contratacion || null);
+    
+    if (activo !== undefined) {
+        updateFields.push('activo = ?');
+        values.push(activo);
+    }
+    
+    if (password && password.length > 0) {
+        if (password.length < 4) {
+            return res.status(400).json({ ok: false, error: "La contraseña debe tener al menos 4 caracteres" });
+        }
+        const hashedPassword = await bcrypt.hash(password, 10);
+        updateFields.push('password = ?');
+        values.push(hashedPassword);
+    }
+    
+    values.push(id);
+    
+    const sql = `UPDATE usuarios SET ${updateFields.join(', ')} WHERE id = ?`;
+    
+    db.query(sql, values, (err, result) => {
+        if (err) {
+            console.error("Error actualizando usuario:", err);
+            if (err.code === 'ER_DUP_ENTRY') {
+                return res.status(400).json({ ok: false, error: "El nombre de usuario ya existe" });
+            }
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, message: "Usuario actualizado exitosamente" });
+    });
+});
+
+// Actualizar solo estado del usuario (activar/desactivar)
+app.put('/api/usuarios/:id/estado', (req, res) => {
+    const { id } = req.params;
+    const { activo } = req.body;
+    
+    db.query('UPDATE usuarios SET activo = ? WHERE id = ?', [activo, id], (err) => {
+        if (err) {
+            console.error("Error actualizando estado del usuario:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        res.json({ ok: true, message: "Estado actualizado" });
+    });
+});
+
+// Eliminar usuario
+app.delete('/api/usuarios/:id', (req, res) => {
+    const { id } = req.params;
+    
+    db.query('DELETE FROM usuarios WHERE id = ? AND usuario NOT IN ("douglas", "admin")', [id], (err, result) => {
+        if (err) {
+            console.error("Error eliminando usuario:", err);
+            return res.status(500).json({ ok: false, error: err.message });
+        }
+        if (result.affectedRows === 0) {
+            return res.status(400).json({ ok: false, error: "No se puede eliminar este usuario" });
+        }
+        res.json({ ok: true, message: "Usuario eliminado" });
+    });
+});
+
+// =============================================
 // ========== MANEJO DE ERRORES ================
 // =============================================
 
@@ -1009,6 +1190,7 @@ app.listen(PORT, () => {
     ║   📄 Alertas: /alertas                            ║
     ║   📄 Ventas: /ventas                              ║
     ║   📄 Registro Ventas: /registro_ventas            ║
+    ║   📄 Usuarios: /usuarios                          ║
     ║   📁 Tickets guardados en: ${ticketsDir}    ║
     ║   💵 Moneda: USD ($)                              ║
     ║   ✅ Productos: Se pueden eliminar (CASCADE)      ║
@@ -1016,7 +1198,10 @@ app.listen(PORT, () => {
     ║   📸 Imágenes: Soporte para fotos opcionales      ║
     ║   🛒 Ventas: Punto de venta con tickets PDF       ║
     ║   💾 PDFs: Se guardan automáticamente en /tickets ║
+    ║   👥 Usuarios: Gestión completa de usuarios       ║
     ║   🔧 CORREGIDO: Stock ya NO se duplica!           ║
+    ║   ✏️  EDITAR USUARIO: Nombre de usuario editable   ║
+    ║   📅 FECHAS: Nacimiento y contratación corregidas ║
     ╚═══════════════════════════════════════════════════╝
     `);
 });

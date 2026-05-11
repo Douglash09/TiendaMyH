@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestión de Usuarios - Mini Super M&H</title>
+    <link href="https://fonts.googleapis.com/css?family=Poppins:400,500,600,700,800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        :root {
+            --bg: #eef2f7;
+            --card: #ffffff;
+            --text: #1a2c3e;
+            --muted: #5a6e7c;
+            --primary: #2c7da0;
+            --success: #2e7d32;
+            --danger: #c62828;
+            --warning: #f9a825;
+            --info: #0288d1;
+            --border: #dce4ec;
+            --shadow: 0 4px 12px rgba(0,0,0,0.08);
+            --table-header: #f8fafc;
+            --input-bg: #ffffff;
+        }
+        .dark {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --text: #f1f5f9;
+            --muted: #94a3b8;
+            --primary: #3b82f6;
+            --border: #334155;
+            --table-header: #0f172a;
+            --input-bg: #1e293b;
+        }
+        body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px; transition: all 0.3s; }
+        .container { max-width: 1400px; margin: 0 auto; }
+        .header { background: var(--card); border-radius: 20px; padding: 16px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: var(--shadow); }
+        .logo h1 { font-size: 1.3rem; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .btn { padding: 8px 18px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
+        .btn-danger { background: var(--danger); color: white; }
+        .btn-success { background: var(--success); color: white; }
+        .btn-warning { background: var(--warning); color: #1a2c3e; }
+        .btn-sm { padding: 6px 14px; font-size: 0.75rem; }
+        .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        .table-container { background: var(--card); border-radius: 20px; overflow-x: auto; box-shadow: var(--shadow); }
+        .usuarios-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 900px; }
+        .usuarios-table th { background: var(--table-header); padding: 14px 10px; text-align: left; font-weight: 600; color: var(--primary); border: 1px solid var(--border); }
+        .usuarios-table td { padding: 12px 10px; vertical-align: middle; border: 1px solid var(--border); }
+        .badge-activo { background: var(--success); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .badge-inactivo { background: var(--danger); color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; display: inline-block; }
+        .action-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+        .empty-state { text-align: center; padding: 60px 20px; color: var(--muted); }
+        
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.6);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        .modal-content {
+            background: var(--card);
+            border-radius: 24px;
+            width: 90%;
+            max-width: 600px;
+            max-height: 85vh;
+            overflow-y: auto;
+            padding: 28px;
+            position: relative;
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            border-bottom: 2px solid var(--border);
+            padding-bottom: 12px;
+        }
+        .form-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-group label {
+            display: block;
+            font-size: 0.75rem;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: var(--muted);
+        }
+        .input-group label .required {
+            color: var(--danger);
+        }
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 12px 16px;
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            background: var(--input-bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
+        }
+        .input-group input.error {
+            border-color: var(--danger);
+        }
+        .error-message {
+            color: var(--danger);
+            font-size: 0.7rem;
+            margin-top: 4px;
+            display: none;
+        }
+        .full-width {
+            grid-column: span 2;
+        }
+        .flex-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .icon-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            padding: 6px;
+            border-radius: 8px;
+            transition: 0.2s;
+            color: var(--muted);
+        }
+        .icon-btn:hover {
+            background: var(--bg);
+            color: var(--danger);
+        }
+        .phone-hint {
+            font-size: 0.7rem;
+            color: var(--muted);
+            margin-top: 4px;
+        }
+        
+        @media (max-width: 768px) { body { padding: 16px; } .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="header">
+        <div class="logo">
+            <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
+            <p>Administración de cuentas del sistema</p>
+        </div>
+        <div>
+            <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+            <button class="btn btn-outline" id="modeBtn"><i class="fas fa-moon"></i> Modo</button>
+        </div>
+    </div>
+    
+    <div class="table-container">
+        <table class="usuarios-table">
+            <thead>
+                <tr><th>ID</th><th>Usuario</th><th>Nombre Completo</th><th>Rol</th><th>Email</th><th>Teléfono</th><th>Estado</th><th>Acciones</th></tr>
+            </thead>
+            <tbody id="usuariosTableBody">
+                <tr><td colspan="8" style="text-align:center">Cargando usuarios...</td></tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- MODAL EDITAR USUARIO -->
+<div id="editarUsuarioModal" class="modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Editar Usuario</h3>
+            <button class="icon-btn" id="closeEditarModalBtn">&times;</button>
+        </div>
+        <form id="editarUsuarioForm">
+            <input type="hidden" id="editUserId">
+            <div class="form-grid">
+                <div class="input-group full-width">
+                    <label><span class="required">*</span> Rol</label>
+                    <select id="editIdRol" required>
+                        <option value="">Seleccionar rol</option>
+                    </select>
+                    <div class="error-message" id="edit_error_rol">Seleccione un rol</div>
+                </div>
+                <div class="input-group">
+                    <label><span class="required">*</span> Usuario</label>
+                    <input type="text" id="editUsuario" required placeholder="solo letras, sin espacios">
+                    <div class="error-message" id="edit_error_usuario">Solo letras (a-z, A-Z), mínimo 3 caracteres</div>
+                </div>
+                <div class="input-group">
+                    <label>Nueva Contraseña</label>
+                    <input type="password" id="editPassword" placeholder="Dejar vacío para no cambiar">
+                    <div class="error-message" id="edit_error_password">La contraseña debe tener al menos 4 caracteres</div>
+                </div>
+                <div class="input-group full-width">
+                    <label><span class="required">*</span> Nombre Completo</label>
+                    <input type="text" id="editNombreCompleto" required placeholder="solo letras y espacios">
+                    <div class="error-message" id="edit_error_nombre_completo">Solo letras y espacios</div>
+                </div>
+                <div class="input-group">
+                    <label>Email</label>
+                    <input type="email" id="editEmail" placeholder="correo@ejemplo.com">
+                    <div class="error-message" id="edit_error_email">Ingrese un email válido</div>
+                </div>
+                <div class="input-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="editTelefono" placeholder="ej: 75765972" maxlength="8" inputmode="numeric">
+                    <div class="error-message" id="edit_error_telefono">El teléfono debe tener exactamente 8 dígitos</div>
+                    <div class="phone-hint"><i class="fas fa-info-circle"></i> 8 dígitos, solo números (ej: 75765972)</div>
+                </div>
+                <div class="input-group full-width">
+                    <label>Dirección</label>
+                    <input type="text" id="editDireccion" placeholder="Dirección">
+                </div>
+                <div class="input-group">
+                    <label>Fecha de Nacimiento</label>
+                    <input type="date" id="editFechaNacimiento">
+                </div>
+                <div class="input-group">
+                    <label>Fecha de Contratación</label>
+                    <input type="date" id="editFechaContratacion">
+                </div>
+                <div class="input-group full-width">
+                    <label>Estado</label>
+                    <select id="editActivo">
+                        <option value="1">Activo</option>
+                        <option value="0">Inactivo</option>
+                    </select>
+                </div>
+            </div>
+            <div class="flex-buttons">
+                <button type="button" class="btn-outline" id="cancelEditarBtn">Cancelar</button>
+                <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    const API_URL = '/api';
+    let rolesList = [];
+    
+    // Funciones de validación
+    function soloLetras(texto) {
+        return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ\s]+$/.test(texto);
+    }
+    
+    function soloLetrasSinEspacios(texto) {
+        return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ]+$/.test(texto);
+    }
+    
+    function validarTelefono(telefono) {
+        if (!telefono) return true;
+        return /^\d{8}$/.test(telefono);
+    }
+    
+    function validarEmail(email) {
+        if (!email) return true;
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+    
+    function formatearTelefono(input) {
+        let valor = input.value.replace(/\D/g, '');
+        if (valor.length > 8) {
+            valor = valor.substring(0, 8);
+        }
+        input.value = valor;
+    }
+    
+    // Función para formatear fecha a YYYY-MM-DD
+    function formatearFecha(fecha) {
+        if (!fecha) return '';
+        const d = new Date(fecha);
+        const year = d.getFullYear();
+        const month = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    }
+    
+    async function cargarRoles() {
+        try {
+            const res = await fetch(`${API_URL}/roles`);
+            const data = await res.json();
+            if (data.ok) {
+                rolesList = data.data;
+                const selectRol = document.getElementById('editIdRol');
+                if (selectRol) {
+                    selectRol.innerHTML = '<option value="">Seleccionar rol</option>' + 
+                        rolesList.map(rol => `<option value="${rol.id}">${rol.nombre_rol}</option>`).join('');
+                }
+            }
+        } catch (error) {
+            console.error('Error cargando roles:', error);
+        }
+    }
+    
+    async function cargarUsuarios() {
+        try {
+            const res = await fetch(`${API_URL}/usuarios`);
+            const data = await res.json();
+            if (data.ok) {
+                const tbody = document.getElementById('usuariosTableBody');
+                if (data.data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="8" class="empty-state">No hay usuarios registrados</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = data.data.map(user => `
+                    <tr>
+                        <td>${user.id}</td>
+                        <td><strong>${escapeHtml(user.usuario)}</strong></td>
+                        <td>${escapeHtml(user.nombre_completo)}</td>
+                        <td><span style="background: ${user.rol === 'Administrador' ? '#2c7da0' : '#f9a825'}; color: white; padding: 4px 10px; border-radius: 20px; font-size: 0.7rem;">${user.rol}</span></td>
+                        <td>${escapeHtml(user.email || '—')}</td>
+                        <td>${escapeHtml(user.telefono || '—')}</td>
+                        <td><span class="${user.activo ? 'badge-activo' : 'badge-inactivo'}">${user.activo ? 'Activo' : 'Inactivo'}</span></td>
+                        <td class="action-buttons">
+                            <button class="btn-sm btn-warning" onclick="abrirEditarUsuario(${user.id})">
+                                <i class="fas fa-edit"></i> Editar
+                            </button>
+                            <button class="btn-sm ${user.activo ? 'btn-danger' : 'btn-success'}" onclick="toggleEstado(${user.id}, ${!user.activo})">
+                                ${user.activo ? '<i class="fas fa-ban"></i> Desactivar' : '<i class="fas fa-check"></i> Activar'}
+                            </button>
+                            <button class="btn-sm btn-danger" onclick="eliminarUsuario(${user.id}, '${escapeHtml(user.usuario)}')" ${user.usuario === 'douglas' || user.usuario === 'admin' ? 'disabled' : ''}>
+                                <i class="fas fa-trash"></i> Eliminar
+                            </button>
+                        </td>
+                    </tr>
+                `).join('');
+            }
+        } catch (error) {
+            console.error('Error cargando usuarios:', error);
+            document.getElementById('usuariosTableBody').innerHTML = '<tr><td colspan="8" style="text-align:center">⚠️ Error cargando usuarios</td></tr>';
+        }
+    }
+    
+    async function toggleEstado(id, activo) {
+        try {
+            const res = await fetch(`${API_URL}/usuarios/${id}/estado`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ activo: activo ? 1 : 0 })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert(activo ? '✅ Usuario activado' : '⚠️ Usuario desactivado');
+                cargarUsuarios();
+            } else {
+                alert('❌ Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('❌ Error de conexión');
+        }
+    }
+    
+    async function eliminarUsuario(id, usuario) {
+        if (!confirm(`¿Eliminar permanentemente al usuario "${usuario}"?\nEsta acción no se puede deshacer.`)) return;
+        try {
+            const res = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (data.ok) {
+                alert('✅ Usuario eliminado');
+                cargarUsuarios();
+            } else {
+                alert('❌ Error: ' + data.error);
+            }
+        } catch (error) {
+            alert('❌ Error de conexión');
+        }
+    }
+    
+    async function abrirEditarUsuario(id) {
+        try {
+            // Obtener datos específicos del usuario
+            const resUsuarios = await fetch(`${API_URL}/usuarios`);
+            const dataUsuarios = await resUsuarios.json();
+            
+            if (dataUsuarios.ok) {
+                const user = dataUsuarios.data.find(u => u.id === id);
+                if (user) {
+                    console.log('Usuario a editar:', user); // Para depuración
+                    
+                    const selectRol = document.getElementById('editIdRol');
+                    selectRol.innerHTML = '<option value="">Seleccionar rol</option>' + 
+                        rolesList.map(rol => `<option value="${rol.id}" ${rol.id === user.id_rol ? 'selected' : ''}>${rol.nombre_rol}</option>`).join('');
+                    
+                    document.getElementById('editUserId').value = user.id;
+                    document.getElementById('editUsuario').value = user.usuario;
+                    document.getElementById('editNombreCompleto').value = user.nombre_completo;
+                    document.getElementById('editEmail').value = user.email || '';
+                    document.getElementById('editTelefono').value = user.telefono || '';
+                    document.getElementById('editDireccion').value = user.direccion || '';
+                    
+                    // CORREGIDO: Formatear fechas correctamente
+                    if (user.fecha_nacimiento) {
+                        const fechaNac = new Date(user.fecha_nacimiento);
+                        if (!isNaN(fechaNac.getTime())) {
+                            document.getElementById('editFechaNacimiento').value = formatearFecha(user.fecha_nacimiento);
+                        } else {
+                            document.getElementById('editFechaNacimiento').value = '';
+                        }
+                    } else {
+                        document.getElementById('editFechaNacimiento').value = '';
+                    }
+                    
+                    if (user.fecha_contratacion) {
+                        const fechaCont = new Date(user.fecha_contratacion);
+                        if (!isNaN(fechaCont.getTime())) {
+                            document.getElementById('editFechaContratacion').value = formatearFecha(user.fecha_contratacion);
+                        } else {
+                            document.getElementById('editFechaContratacion').value = '';
+                        }
+                    } else {
+                        document.getElementById('editFechaContratacion').value = '';
+                    }
+                    
+                    document.getElementById('editActivo').value = user.activo ? '1' : '0';
+                    document.getElementById('editPassword').value = '';
+                    
+                    document.querySelectorAll('.error-message').forEach(el => el.style.display = 'none');
+                    document.querySelectorAll('.input-group input').forEach(el => el.classList.remove('error'));
+                    
+                    document.getElementById('editarUsuarioModal').style.display = 'flex';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error al cargar datos del usuario');
+        }
+    }
+    
+    function validarFormularioEdicion() {
+        let isValid = true;
+        
+        const rol = document.getElementById('editIdRol').value;
+        if (!rol) {
+            document.getElementById('edit_error_rol').style.display = 'block';
+            isValid = false;
+        } else {
+            document.getElementById('edit_error_rol').style.display = 'none';
+        }
+        
+        const usuario = document.getElementById('editUsuario').value.trim();
+        if (!usuario || usuario.length < 3 || !soloLetrasSinEspacios(usuario)) {
+            document.getElementById('edit_error_usuario').style.display = 'block';
+            document.getElementById('editUsuario').classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('edit_error_usuario').style.display = 'none';
+            document.getElementById('editUsuario').classList.remove('error');
+        }
+        
+        const nombreCompleto = document.getElementById('editNombreCompleto').value.trim();
+        if (!nombreCompleto || !soloLetras(nombreCompleto)) {
+            document.getElementById('edit_error_nombre_completo').style.display = 'block';
+            document.getElementById('editNombreCompleto').classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('edit_error_nombre_completo').style.display = 'none';
+            document.getElementById('editNombreCompleto').classList.remove('error');
+        }
+        
+        const password = document.getElementById('editPassword').value;
+        if (password && password.length < 4) {
+            document.getElementById('edit_error_password').style.display = 'block';
+            document.getElementById('editPassword').classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('edit_error_password').style.display = 'none';
+            document.getElementById('editPassword').classList.remove('error');
+        }
+        
+        const email = document.getElementById('editEmail').value.trim();
+        if (email && !validarEmail(email)) {
+            document.getElementById('edit_error_email').style.display = 'block';
+            document.getElementById('editEmail').classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('edit_error_email').style.display = 'none';
+            document.getElementById('editEmail').classList.remove('error');
+        }
+        
+        const telefono = document.getElementById('editTelefono').value.trim();
+        if (telefono && !validarTelefono(telefono)) {
+            document.getElementById('edit_error_telefono').style.display = 'block';
+            document.getElementById('editTelefono').classList.add('error');
+            isValid = false;
+        } else {
+            document.getElementById('edit_error_telefono').style.display = 'none';
+            document.getElementById('editTelefono').classList.remove('error');
+        }
+        
+        return isValid;
+    }
+    
+    document.getElementById('editarUsuarioForm').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        
+        if (!validarFormularioEdicion()) return;
+        
+        const userId = document.getElementById('editUserId').value;
+        
+        // Obtener valores de las fechas
+        let fechaNacimiento = document.getElementById('editFechaNacimiento').value;
+        let fechaContratacion = document.getElementById('editFechaContratacion').value;
+        
+        const usuarioData = {
+            id_rol: document.getElementById('editIdRol').value,
+            usuario: document.getElementById('editUsuario').value.trim().toLowerCase(),
+            nombre_completo: document.getElementById('editNombreCompleto').value.trim(),
+            email: document.getElementById('editEmail').value.trim() || null,
+            telefono: document.getElementById('editTelefono').value.trim() || null,
+            direccion: document.getElementById('editDireccion').value.trim() || null,
+            fecha_nacimiento: fechaNacimiento || null,
+            fecha_contratacion: fechaContratacion || null,
+            activo: parseInt(document.getElementById('editActivo').value)
+        };
+        
+        const newPassword = document.getElementById('editPassword').value;
+        if (newPassword) {
+            usuarioData.password = newPassword;
+        }
+        
+        console.log('Enviando datos:', usuarioData); // Para depuración
+        
+        try {
+            const res = await fetch(`${API_URL}/usuarios/${userId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(usuarioData)
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert('✅ Usuario actualizado exitosamente');
+                document.getElementById('editarUsuarioModal').style.display = 'none';
+                cargarUsuarios();
+            } else {
+                alert('❌ Error: ' + data.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            alert('❌ Error de conexión');
+        }
+    });
+    
+    function cerrarModal(modalElement) {
+        modalElement.style.display = 'none';
+    }
+    
+    function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
+    
+    document.getElementById('volverDashboard')?.addEventListener('click', () => {
+        window.location.href = '/dashboard';
+    });
+    
+    document.getElementById('closeEditarModalBtn')?.addEventListener('click', () => cerrarModal(document.getElementById('editarUsuarioModal')));
+    document.getElementById('cancelEditarBtn')?.addEventListener('click', () => cerrarModal(document.getElementById('editarUsuarioModal')));
+    
+    window.addEventListener('click', (e) => {
+        const modal = document.getElementById('editarUsuarioModal');
+        if (e.target === modal) cerrarModal(modal);
+    });
+    
+    // Eventos de formato
+    const telefonoInput = document.getElementById('editTelefono');
+    if (telefonoInput) {
+        telefonoInput.addEventListener('input', function() { formatearTelefono(this); });
+    }
+    
+    const usuarioEditInput = document.getElementById('editUsuario');
+    if (usuarioEditInput) {
+        usuarioEditInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ]/g, '');
+        });
+    }
+    
+    const nombreInput = document.getElementById('editNombreCompleto');
+    if (nombreInput) {
+        nombreInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ\s]/g, '');
+        });
+    }
+    
+    const modeBtn = document.getElementById('modeBtn');
+    if (localStorage.getItem('modoSupermercado') === 'true') document.body.classList.add('dark');
+    modeBtn.addEventListener('click', () => {
+        document.body.classList.toggle('dark');
+        localStorage.setItem('modoSupermercado', document.body.classList.contains('dark'));
+        modeBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+    });
+    
+    // Inicializar
+    cargarRoles();
+    cargarUsuarios();
+</script>
+</body>
+</html>
