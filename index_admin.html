@@ -41,6 +41,14 @@
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px; transition: all 0.3s; }
         .container { max-width: 1600px; margin: 0 auto; }
         
+        /* Contenido bloqueado - se oculta cuando está bloqueado */
+        .locked-content {
+            filter: blur(4px);
+            pointer-events: none;
+            user-select: none;
+            opacity: 0.6;
+        }
+        
         .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 15px; background: var(--card); border-radius: 24px; padding: 16px 24px; box-shadow: var(--shadow); }
         .brand h1 { font-size: 1.2rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .brand p { margin-top: 2px; color: var(--muted); font-size: 0.7rem; }
@@ -52,6 +60,8 @@
         .btn-success { background: var(--success); color: white; }
         .btn-warning { background: var(--warning); color: #1a2c3e; }
         .btn-info { background: var(--info); color: white; }
+        .btn-lock { background: #ff9800; color: #1a2c3e; }
+        .btn-lock:hover { background: #f57c00; transform: translateY(-2px); }
         .btn-success:hover { background: #1b5e20; transform: translateY(-2px); }
         .btn-danger:hover { background: #b71c1c; transform: translateY(-2px); }
         .btn-warning:hover { background: #f57c00; transform: translateY(-2px); }
@@ -59,7 +69,25 @@
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .user-chip { background: var(--table-header); border-radius: 40px; padding: 6px 14px; display: flex; align-items: center; gap: 8px; font-size: 0.8rem; font-weight: 500; }
         
-        /* Barra de usuario - ARRIBA de las tarjetas */
+        .lock-timer {
+            background: var(--warning);
+            color: #1a2c3e;
+            border-radius: 40px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .lock-timer i { font-size: 0.9rem; }
+        .lock-timer.warning { background: var(--danger); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
         .user-bar {
             background: var(--card);
             border-radius: 16px;
@@ -78,7 +106,44 @@
             flex-wrap: wrap;
         }
         
-        /* 6 tarjetas en una sola fila */
+        .lock-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+            backdrop-filter: blur(5px);
+        }
+        .lock-modal-content {
+            background: var(--card);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 450px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.4s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lock-icon { font-size: 4rem; color: var(--warning); margin-bottom: 16px; }
+        .lock-modal-content h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .lock-modal-content p { color: var(--muted); margin-bottom: 20px; font-size: 0.85rem; }
+        .lock-input-group { margin-bottom: 20px; text-align: left; }
+        .lock-input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+        .lock-input-group input { width: 100%; padding: 12px 16px; border-radius: 40px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+        .lock-input-group input:focus { outline: none; border-color: var(--primary); }
+        .lock-error { color: var(--danger); font-size: 0.7rem; margin-top: 8px; display: none; }
+        .lock-buttons { display: flex; gap: 12px; justify-content: center; }
+        .lock-buttons .btn { flex: 1; }
+        
         .stats-grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; margin-bottom: 24px; }
         .stat-card { background: var(--card); border-radius: 14px; padding: 12px; box-shadow: var(--shadow); transition: transform 0.2s; }
         .stat-card:hover { transform: translateY(-3px); }
@@ -124,7 +189,6 @@
         .badge-stock { background: var(--warning); color: #1a2c3e; padding: 2px 6px; border-radius: 20px; font-size: 0.6rem; }
         .badge-expiry { background: var(--danger); color: white; padding: 2px 6px; border-radius: 20px; font-size: 0.6rem; }
         
-        /* Modal de usuario */
         .modal {
             display: none;
             position: fixed;
@@ -155,95 +219,53 @@
             border-bottom: 2px solid var(--border);
             padding-bottom: 10px;
         }
-        .form-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 12px;
-        }
-        .input-group {
-            margin-bottom: 12px;
-        }
-        .input-group label {
-            display: block;
-            font-size: 0.7rem;
-            font-weight: 600;
-            margin-bottom: 4px;
-            color: var(--muted);
-        }
-        .input-group label .required {
-            color: var(--danger);
-        }
-        .input-group input, .input-group select {
-            width: 100%;
-            padding: 10px 12px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            background: var(--bg);
-            color: var(--text);
-            font-family: 'Poppins', sans-serif;
-            font-size: 0.8rem;
-        }
-        .input-group input.error {
-            border-color: var(--danger);
-            background: var(--error-bg, #ffebee);
-        }
-        .error-message {
-            color: var(--danger);
-            font-size: 0.65rem;
-            margin-top: 3px;
-            display: none;
-        }
-        .full-width {
-            grid-column: span 2;
-        }
-        .flex-buttons {
-            display: flex;
-            gap: 10px;
-            justify-content: flex-end;
-            margin-top: 16px;
-        }
-        .icon-btn {
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 1.2rem;
-            padding: 5px;
-            border-radius: 8px;
-            transition: 0.2s;
-            color: var(--muted);
-        }
-        .icon-btn:hover {
-            background: var(--bg);
-            color: var(--danger);
-        }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .input-group { margin-bottom: 12px; }
+        .input-group label { display: block; font-size: 0.7rem; font-weight: 600; margin-bottom: 4px; color: var(--muted); }
+        .input-group label .required { color: var(--danger); }
+        .input-group input, .input-group select { width: 100%; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.8rem; }
+        .input-group input.error { border-color: var(--danger); background: var(--error-bg, #ffebee); }
+        .error-message { color: var(--danger); font-size: 0.65rem; margin-top: 3px; display: none; }
+        .full-width { grid-column: span 2; }
+        .flex-buttons { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; }
+        .icon-btn { background: none; border: none; cursor: pointer; font-size: 1.2rem; padding: 5px; border-radius: 8px; transition: 0.2s; color: var(--muted); }
+        .icon-btn:hover { background: var(--bg); color: var(--danger); }
         
         @media (max-width: 1200px) { .stats-grid { grid-template-columns: repeat(3, 1fr); } }
         @media (max-width: 1000px) { .stats-grid { grid-template-columns: repeat(2, 1fr); } .mini-kpis { grid-template-columns: repeat(2, 1fr); } .cards-2col { grid-template-columns: 1fr; } }
         @media (max-width: 600px) { .stats-grid, .mini-kpis { grid-template-columns: 1fr; } body { padding: 16px; } .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
         .stat-number, .n { animation: fadeIn 0.3s ease; }
+        .phone-hint { font-size: 0.6rem; color: var(--muted); margin-top: 3px; }
         
-        .phone-hint {
-            font-size: 0.6rem;
-            color: var(--muted);
-            margin-top: 3px;
+        /* Overlay de bloqueo para cuando está bloqueado */
+        .lock-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 1999;
+            backdrop-filter: blur(2px);
         }
     </style>
 </head>
 <body>
-<div class="container">
+<div class="container" id="mainContainer">
     <div class="top">
         <div class="brand">
             <h1><i class="fas fa-chart-line"></i> SISTEMA DE INVENTARIO Y VENTAS</h1>
             <p>Mini Super M&H</p>
         </div>
         <div class="top-buttons">
+            <button class="btn btn-lock" id="btnLockScreen"><i class="fas fa-lock"></i> Bloquear</button>
             <button class="btn btn-outline" id="modeBtn"><i class="fas fa-moon"></i> Oscuro</button>
-            <button class="btn btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+            <button class="btn btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar</button>
         </div>
     </div>
 
-    <!-- Barra de usuario - ARRIBA de las tarjetas -->
     <div class="user-bar">
         <div class="user-chip">
             <i class="fas fa-user-circle"></i>
@@ -259,46 +281,78 @@
         </div>
     </div>
 
-    <!-- 6 tarjetas de estadísticas -->
-    <div class="stats-grid">
-        <div class="stat-card"><div class="stat-header"><h3>Total Productos</h3><div class="icon-svg"><i class="fas fa-boxes"></i></div></div><div class="stat-number" id="totalProductos">--</div><div class="stat-label">Registrados</div></div>
-        <div class="stat-card"><div class="stat-header"><h3>Stock Total</h3><div class="icon-svg"><i class="fas fa-cubes"></i></div></div><div class="stat-number" id="stockTotal">--</div><div class="stat-label">Unidades</div></div>
-        <div class="stat-card alert"><div class="stat-header"><h3>Alertas Stock</h3><div class="icon-svg"><i class="fas fa-exclamation-triangle"></i></div></div><div class="stat-number" id="alertasStock">--</div><div class="stat-label">Stock bajo</div></div>
-        <div class="stat-card warn"><div class="stat-header"><h3>Valor Invertido</h3><div class="icon-svg"><i class="fas fa-shopping-cart"></i></div></div><div class="stat-number" id="valorInvertido">--</div><div class="stat-label">Costo total</div></div>
-        <div class="stat-card success"><div class="stat-header"><h3>Valor Venta</h3><div class="icon-svg"><i class="fas fa-tag"></i></div></div><div class="stat-number" id="valorVenta">--</div><div class="stat-label">Precio venta total</div></div>
-        <div class="stat-card"><div class="stat-header"><h3>Ganancia Potencial</h3><div class="icon-svg"><i class="fas fa-chart-line"></i></div></div><div class="stat-number" id="gananciaPotencial">--</div><div class="stat-label">Si se vende todo</div></div>
-    </div>
-
-    <div class="section-card">
-        <h2>Resumen de Inventario</h2>
-        <p class="lead">Estadísticas basadas en tus productos registrados</p>
-        <div class="mini-kpis">
-            <div class="mini"><h4>Activos</h4><div class="n" id="miniActivos">—</div><div class="muted">Productos</div></div>
-            <div class="mini featured"><h4>Stock Bajo</h4><div class="n" id="miniBajo">—</div><div class="muted">Bajo mínimo</div></div>
-            <div class="mini"><h4>Categorías</h4><div class="n" id="miniCats">—</div><div class="muted">Activas</div></div>
-            <div class="mini"><h4>Unidades</h4><div class="n" id="miniUnits">—</div><div class="muted">En almacén</div></div>
+    <div id="timerContainer" style="margin-bottom: 16px; display: flex; justify-content: flex-end;">
+        <div class="lock-timer" id="lockTimer">
+            <i class="fas fa-hourglass-half"></i>
+            <span id="timerSeconds">30</span> segundos para bloqueo
         </div>
     </div>
 
-    <div class="cards-2col">
-        <div class="panel"><h3><i class="fas fa-trophy"></i> Top 5 Productos</h3><p class="muted">(por valor de venta)</p><div id="top5List"></div></div>
-        <div class="panel"><h3><i class="fas fa-chart-pie"></i> Estado de inventario</h3>
-            <div class="rowbar"><span><i class="fas fa-check-circle" style="color: var(--success);"></i> Stock óptimo</span><div class="bar"><i id="barAlto" style="width:0%"></i></div><span id="cntAlto">0</span></div>
-            <div class="rowbar"><span><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i> Stock bajo / sin stock</span><div class="bar"><i id="barBajo" style="width:0%"></i></div><span id="cntBajo">0</span></div>
-            <hr>
-            <div class="grid-3"><div class="tile"><div class="muted">Categorías</div><div class="stat" id="tileCats">—</div><span class="badge">Activas</span></div>
-            <div class="tile"><div class="muted">Precio Promedio</div><div class="stat" id="tileAvgPrice">—</div><span class="badge">Por producto</span></div>
-            <div class="tile"><div class="muted">Última Actualización</div><div class="stat" id="lastSync">—</div><span class="badge">Sistema</span></div></div>
+    <div id="dashboardContent">
+        <div class="stats-grid">
+            <div class="stat-card"><div class="stat-header"><h3>Total Productos</h3><div class="icon-svg"><i class="fas fa-boxes"></i></div></div><div class="stat-number" id="totalProductos">--</div><div class="stat-label">Registrados</div></div>
+            <div class="stat-card"><div class="stat-header"><h3>Stock Total</h3><div class="icon-svg"><i class="fas fa-cubes"></i></div></div><div class="stat-number" id="stockTotal">--</div><div class="stat-label">Unidades</div></div>
+            <div class="stat-card alert"><div class="stat-header"><h3>Alertas Stock</h3><div class="icon-svg"><i class="fas fa-exclamation-triangle"></i></div></div><div class="stat-number" id="alertasStock">--</div><div class="stat-label">Stock bajo</div></div>
+            <div class="stat-card warn"><div class="stat-header"><h3>Valor Invertido</h3><div class="icon-svg"><i class="fas fa-shopping-cart"></i></div></div><div class="stat-number" id="valorInvertido">--</div><div class="stat-label">Costo total</div></div>
+            <div class="stat-card success"><div class="stat-header"><h3>Valor Venta</h3><div class="icon-svg"><i class="fas fa-tag"></i></div></div><div class="stat-number" id="valorVenta">--</div><div class="stat-label">Precio venta total</div></div>
+            <div class="stat-card"><div class="stat-header"><h3>Ganancia Potencial</h3><div class="icon-svg"><i class="fas fa-chart-line"></i></div></div><div class="stat-number" id="gananciaPotencial">--</div><div class="stat-label">Si se vende todo</div></div>
         </div>
-    </div>
 
-    <div class="section-card" id="alertasSection">
-        <h2><i class="fas fa-bell"></i> Últimas Alertas</h2>
-        <p class="lead">Notificaciones de stock bajo y productos próximos a vencer</p>
-        <div id="alertasContainer" class="alertas-list"><div class="muted" style="text-align:center; padding:20px;">Cargando alertas...</div></div>
+        <div class="section-card">
+            <h2>Resumen de Inventario</h2>
+            <p class="lead">Estadísticas basadas en tus productos registrados</p>
+            <div class="mini-kpis">
+                <div class="mini"><h4>Activos</h4><div class="n" id="miniActivos">—</div><div class="muted">Productos</div></div>
+                <div class="mini featured"><h4>Stock Bajo</h4><div class="n" id="miniBajo">—</div><div class="muted">Bajo mínimo</div></div>
+                <div class="mini"><h4>Categorías</h4><div class="n" id="miniCats">—</div><div class="muted">Activas</div></div>
+                <div class="mini"><h4>Unidades</h4><div class="n" id="miniUnits">—</div><div class="muted">En almacén</div></div>
+            </div>
+        </div>
+
+        <div class="cards-2col">
+            <div class="panel"><h3><i class="fas fa-trophy"></i> Top 5 Productos</h3><p class="muted">(por valor de venta)</p><div id="top5List"></div></div>
+            <div class="panel"><h3><i class="fas fa-chart-pie"></i> Estado de inventario</h3>
+                <div class="rowbar"><span><i class="fas fa-check-circle" style="color: var(--success);"></i> Stock óptimo</span><div class="bar"><i id="barAlto" style="width:0%"></i></div><span id="cntAlto">0</span></div>
+                <div class="rowbar"><span><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i> Stock bajo / sin stock</span><div class="bar"><i id="barBajo" style="width:0%"></i></div><span id="cntBajo">0</span></div>
+                <hr>
+                <div class="grid-3"><div class="tile"><div class="muted">Categorías</div><div class="stat" id="tileCats">—</div><span class="badge">Activas</span></div>
+                <div class="tile"><div class="muted">Precio Promedio</div><div class="stat" id="tileAvgPrice">—</div><span class="badge">Por producto</span></div>
+                <div class="tile"><div class="muted">Última Actualización</div><div class="stat" id="lastSync">—</div><span class="badge">Sistema</span></div></div>
+            </div>
+        </div>
+
+        <div class="section-card" id="alertasSection">
+            <h2><i class="fas fa-bell"></i> Últimas Alertas</h2>
+            <p class="lead">Notificaciones de stock bajo y productos próximos a vencer</p>
+            <div id="alertasContainer" class="alertas-list"><div class="muted" style="text-align:center; padding:20px;">Cargando alertas...</div></div>
+        </div>
     </div>
 
     <footer>© 2025 Douglas Omar Mendez Hernandez — Mini Super M&H</footer>
+</div>
+
+<!-- MODAL DE BLOQUEO -->
+<div id="lockModal" class="lock-modal">
+    <div class="lock-modal-content">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h2>Sesión Bloqueada</h2>
+        <p>Por seguridad, tu sesión ha sido bloqueada por inactividad.<br>Ingresa tus credenciales para continuar.</p>
+        <form id="unlockForm">
+            <div class="lock-input-group">
+                <label><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" id="unlockUser" placeholder="Ingresa tu usuario" autocomplete="off">
+            </div>
+            <div class="lock-input-group">
+                <label><i class="fas fa-key"></i> Contraseña</label>
+                <input type="password" id="unlockPass" placeholder="Ingresa tu contraseña">
+            </div>
+            <div id="lockError" class="lock-error">❌ Usuario o contraseña incorrectos</div>
+            <div class="lock-buttons">
+                <button type="button" class="btn btn-outline" id="btnLogoutFromLock"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-unlock-alt"></i> Desbloquear</button>
+            </div>
+        </form>
+    </div>
 </div>
 
 <!-- MODAL REGISTRAR USUARIO -->
@@ -312,9 +366,7 @@
             <div class="form-grid">
                 <div class="input-group full-width">
                     <label><span class="required">*</span> Rol</label>
-                    <select id="id_rol" required>
-                        <option value="">Seleccionar rol</option>
-                    </select>
+                    <select id="id_rol" required><option value="">Seleccionar rol</option></select>
                     <div class="error-message" id="error_rol">Seleccione un rol</div>
                 </div>
                 <div class="input-group">
@@ -368,39 +420,183 @@
     const API_URL = 'http://localhost:3000/api';
     let productos = [];
     let lotesPorProducto = {};
-
-    // ============================================
-    // FUNCIONES DE VALIDACIÓN
-    // ============================================
     
-    function soloLetras(texto) {
-        return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ\s]+$/.test(texto);
+    // ========== SISTEMA DE BLOQUEO POR INACTIVIDAD ==========
+    let inactivityTimer = null;
+    let countdownInterval = null;
+    let remainingSeconds = 30;
+    let isLocked = false;
+    
+    // Verificar estado de bloqueo al cargar la página
+    function checkLockStateOnLoad() {
+        const locked = localStorage.getItem('screen_locked') === 'true';
+        if (locked) {
+            isLocked = true;
+            showLockModal();
+            // Detener temporizadores
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            // Ocultar el temporizador visual
+            const timerDiv = document.getElementById('lockTimer');
+            if (timerDiv) timerDiv.style.opacity = '0.5';
+        } else {
+            // Normal, iniciar temporizadores
+            resetInactivityTimer();
+        }
     }
     
-    function soloLetrasSinEspacios(texto) {
-        return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ]+$/.test(texto);
+    function resetInactivityTimer() {
+        if (isLocked) return;
+        
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        remainingSeconds = 30;
+        updateTimerDisplay();
+        
+        countdownInterval = setInterval(() => {
+            if (!isLocked && remainingSeconds > 0) {
+                remainingSeconds--;
+                updateTimerDisplay();
+            }
+        }, 1000);
+        
+        inactivityTimer = setTimeout(() => {
+            if (!isLocked) {
+                lockScreen();
+            }
+        }, 30000);
     }
     
-    function validarTelefono(telefono) {
-        if (!telefono) return true;
-        return /^\d{8}$/.test(telefono);
+    function updateTimerDisplay() {
+        const timerSpan = document.getElementById('timerSeconds');
+        if (timerSpan) timerSpan.innerText = remainingSeconds;
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) {
+            if (remainingSeconds <= 10) {
+                timerDiv.classList.add('warning');
+            } else {
+                timerDiv.classList.remove('warning');
+            }
+        }
     }
     
-    function validarEmail(email) {
-        if (!email) return true;
-        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    function showLockModal() {
+        const lockModal = document.getElementById('lockModal');
+        lockModal.style.display = 'flex';
+        document.getElementById('unlockUser').value = '';
+        document.getElementById('unlockPass').value = '';
+        document.getElementById('lockError').style.display = 'none';
+        
+        // Deshabilitar temporizador visual
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
     }
+    
+    function lockScreen() {
+        if (isLocked) return;
+        isLocked = true;
+        
+        // Guardar estado en localStorage para que persista al recargar
+        localStorage.setItem('screen_locked', 'true');
+        
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        showLockModal();
+    }
+    
+    async function unlockScreen(usuario, password) {
+        try {
+            let response = await fetch(`${API_URL.replace('/api', '')}/login_admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, password })
+            });
+            
+            let data = await response.json();
+            
+            if (!data.success) {
+                response = await fetch(`${API_URL.replace('/api', '')}/login_empleado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                data = await response.json();
+            }
+            
+            if (data.success && data.rol === 'Administrador') {
+                isLocked = false;
+                localStorage.removeItem('screen_locked');
+                
+                document.getElementById('lockModal').style.display = 'none';
+                document.getElementById('lockError').style.display = 'none';
+                
+                // Restaurar temporizador visual
+                const timerDiv = document.getElementById('lockTimer');
+                if (timerDiv) timerDiv.style.opacity = '1';
+                
+                document.getElementById("userNameDisplay").textContent = data.nombre_completo || data.usuario;
+                document.getElementById("userRoleDisplay").textContent = data.rol;
+                
+                localStorage.setItem("sesion_activa", "true");
+                localStorage.setItem("usuario", data.usuario);
+                localStorage.setItem("nombre_completo", data.nombre_completo);
+                localStorage.setItem("rol", data.rol);
+                
+                resetInactivityTimer();
+                cargarEstadisticas();
+                return true;
+            } else {
+                document.getElementById('lockError').textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
+                document.getElementById('lockError').style.display = 'block';
+                return false;
+            }
+        } catch (error) {
+            document.getElementById('lockError').textContent = '❌ Error de conexión';
+            document.getElementById('lockError').style.display = 'block';
+            return false;
+        }
+    }
+    
+    function logoutFromLock() {
+        localStorage.removeItem('screen_locked');
+        localStorage.removeItem('sesion_activa');
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('nombre_completo');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('inv.user');
+        window.location.href = 'roles.html';
+    }
+    
+    function onUserActivity() {
+        if (!isLocked) {
+            resetInactivityTimer();
+        }
+    }
+    
+    function setupActivityListeners() {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+            document.addEventListener(event, onUserActivity);
+        });
+    }
+    
+    function manualLock() {
+        lockScreen();
+    }
+    
+    // ========== VALIDACIONES ==========
+    function soloLetras(texto) { return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ\s]+$/.test(texto); }
+    function soloLetrasSinEspacios(texto) { return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ]+$/.test(texto); }
+    function validarTelefono(telefono) { if (!telefono) return true; return /^\d{8}$/.test(telefono); }
+    function validarEmail(email) { if (!email) return true; return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email); }
     
     function validarFormularioUsuario() {
         let isValid = true;
-        
         const rol = document.getElementById('id_rol').value;
-        if (!rol) {
-            document.getElementById('error_rol').style.display = 'block';
-            isValid = false;
-        } else {
-            document.getElementById('error_rol').style.display = 'none';
-        }
+        if (!rol) { document.getElementById('error_rol').style.display = 'block'; isValid = false; }
+        else { document.getElementById('error_rol').style.display = 'none'; }
         
         const usuario = document.getElementById('usuario').value.trim();
         if (!usuario || usuario.length < 3 || !soloLetrasSinEspacios(usuario)) {
@@ -451,18 +647,16 @@
             document.getElementById('error_telefono').style.display = 'none';
             document.getElementById('telefono').classList.remove('error');
         }
-        
         return isValid;
     }
     
     function formatearTelefono(input) {
         let valor = input.value.replace(/\D/g, '');
-        if (valor.length > 8) {
-            valor = valor.substring(0, 8);
-        }
+        if (valor.length > 8) valor = valor.substring(0, 8);
         input.value = valor;
     }
     
+    // ========== SESIÓN ==========
     (function checkSession() {
         const sessionActive = localStorage.getItem("sesion_activa");
         const usuario = localStorage.getItem("usuario");
@@ -473,8 +667,7 @@
         let adminValid = false;
         if (sessionActive === "true" && usuario && rol === "Administrador") {
             adminValid = true;
-            const nombreMostrar = usuario || localStorage.getItem("nombre_completo") || "Admin";
-            document.getElementById("userNameDisplay").textContent = nombreMostrar;
+            document.getElementById("userNameDisplay").textContent = nombreCompleto || usuario || "Admin";
             document.getElementById("userRoleDisplay").textContent = rol;
         } else if (invUserRaw) {
             try {
@@ -493,6 +686,10 @@
             alert("⛔ No tienes una sesión activa como administrador. Redirigiendo al login.");
             window.location.href = "roles.html";
         }
+        
+        setupActivityListeners();
+        // Verificar si estaba bloqueado antes de recargar
+        checkLockStateOnLoad();
     })();
 
     function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
@@ -513,14 +710,12 @@
     function generarAlertas() {
         const alertas = [];
         const hoy = new Date(); hoy.setHours(0, 0, 0, 0);
-        
         for (const producto of productos) {
             if (producto.stock <= 0) {
                 alertas.push({ tipo: 'no_stock', gravedad: 'critica', icono: 'fa-box-open', titulo: 'Producto sin stock', descripcion: `${producto.nombre} - Stock: 0`, producto: producto });
             } else if (producto.stock <= producto.stock_minimo) {
                 alertas.push({ tipo: 'low_stock', gravedad: 'advertencia', icono: 'fa-exclamation-triangle', titulo: 'Stock bajo', descripcion: `${producto.nombre} - Stock: ${producto.stock} | Mín: ${producto.stock_minimo}`, producto: producto });
             }
-            
             const lotes = lotesPorProducto[producto.id] || [];
             for (const lote of lotes) {
                 if (lote.fecha_vencimiento) {
@@ -534,7 +729,7 @@
                 }
             }
         }
-        alertas.sort((a, b) => { if (a.gravedad === 'critica' && b.gravedad !== 'critica') return -1; if (a.gravedad !== 'critica' && b.gravedad === 'critica') return 1; return 0; });
+        alertas.sort((a, b) => { if (a.gravedad === 'critica' && b.gravedad !== 'critica') return -1; return 0; });
         return alertas.slice(0, 8);
     }
 
@@ -549,6 +744,7 @@
     }
 
     async function cargarEstadisticas() {
+        if (isLocked) return;
         try {
             const res = await fetch(`${API_URL}/products`);
             const data = await res.json();
@@ -591,7 +787,6 @@
             else {
                 top5Container.innerHTML = top5.map(p => {
                     const percent = valorVenta > 0 ? (p._valor / valorVenta) * 100 : 0;
-                    const gananciaProducto = p._valor - p._costo;
                     return `<div class="rowbar"><div style="flex:1"><strong>${escapeHtml(p.nombre)}</strong><br><span class="muted" style="font-size:0.65rem;">${escapeHtml(p.categoria_nombre || p.categoria || 'General')} | Stock: ${p.stock}</span></div><div style="min-width:140px; text-align:right;"><div class="bar"><i style="width:${Math.min(100, percent)}%"></i></div><div class="muted" style="font-size:0.65rem;">Venta: ${formatMoney(p._valor)}</div></div></div>`;
                 }).join('');
             }
@@ -606,7 +801,6 @@
             document.getElementById('tileAvgPrice').innerText = formatMoney(precioPromedio);
             document.getElementById('lastSync').innerText = ultimaActualizacion;
             renderAlertas();
-            document.querySelectorAll('.stat-number, .n').forEach(el => { el.style.animation = 'none'; el.offsetHeight; el.style.animation = 'fadeIn 0.3s ease'; });
         } catch (error) { console.error('Error cargando estadísticas:', error); mostrarError(); }
     }
     
@@ -619,44 +813,29 @@
         document.getElementById('alertasContainer').innerHTML = '<div class="muted" style="text-align:center; padding:20px;">⚠️ Error cargando alertas</div>';
     }
 
-    // ============================================
-    // FUNCIONES DE USUARIOS
-    // ============================================
-    
+    // ========== USUARIOS ==========
     async function cargarRoles() {
         try {
             const res = await fetch(`${API_URL}/roles`);
             const data = await res.json();
             if (data.ok) {
                 const select = document.getElementById('id_rol');
-                select.innerHTML = '<option value="">Seleccionar rol</option>' + 
-                    data.data.map(rol => `<option value="${rol.id}">${rol.nombre_rol}</option>`).join('');
+                select.innerHTML = '<option value="">Seleccionar rol</option>' + data.data.map(rol => `<option value="${rol.id}">${rol.nombre_rol}</option>`).join('');
             }
-        } catch (error) {
-            console.error('Error cargando roles:', error);
-        }
+        } catch (error) { console.error('Error cargando roles:', error); }
     }
     
     function limpiarErroresUsuario() {
         const campos = ['usuario', 'password', 'nombre_completo', 'email', 'telefono'];
-        campos.forEach(campo => {
-            const input = document.getElementById(campo);
-            if (input) input.classList.remove('error');
-        });
+        campos.forEach(campo => { const input = document.getElementById(campo); if (input) input.classList.remove('error'); });
         const errores = ['error_rol', 'error_usuario', 'error_password', 'error_nombre_completo', 'error_email', 'error_telefono'];
-        errores.forEach(errorId => {
-            const errorEl = document.getElementById(errorId);
-            if (errorEl) errorEl.style.display = 'none';
-        });
+        errores.forEach(errorId => { const errorEl = document.getElementById(errorId); if (errorEl) errorEl.style.display = 'none'; });
     }
     
     document.getElementById('usuarioForm').addEventListener('submit', async (e) => {
         e.preventDefault();
         limpiarErroresUsuario();
-        
-        if (!validarFormularioUsuario()) {
-            return;
-        }
+        if (!validarFormularioUsuario()) return;
         
         const usuarioData = {
             id_rol: document.getElementById('id_rol').value,
@@ -682,34 +861,16 @@
                 document.getElementById('usuarioModal').style.display = 'none';
                 document.getElementById('usuarioForm').reset();
                 limpiarErroresUsuario();
-            } else {
-                alert('❌ Error: ' + data.error);
-            }
-        } catch (error) {
-            alert('❌ Error de conexión');
-        }
+            } else { alert('❌ Error: ' + data.error); }
+        } catch (error) { alert('❌ Error de conexión'); }
     });
     
     const telefonoInput = document.getElementById('telefono');
-    if (telefonoInput) {
-        telefonoInput.addEventListener('input', function() {
-            formatearTelefono(this);
-        });
-    }
-    
+    if (telefonoInput) telefonoInput.addEventListener('input', function() { formatearTelefono(this); });
     const usuarioInput = document.getElementById('usuario');
-    if (usuarioInput) {
-        usuarioInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ]/g, '');
-        });
-    }
-    
+    if (usuarioInput) usuarioInput.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ]/g, ''); });
     const nombreInput = document.getElementById('nombre_completo');
-    if (nombreInput) {
-        nombreInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ\s]/g, '');
-        });
-    }
+    if (nombreInput) nombreInput.addEventListener('input', function() { this.value = this.value.replace(/[^a-zA-ZáéíóúñÁÉÍÓÚÑ\s]/g, ''); });
     
     function cerrarModal(modalElement) { 
         modalElement.style.display = 'none'; 
@@ -723,26 +884,47 @@
         limpiarErroresUsuario();
         document.getElementById('usuarioModal').style.display = 'flex';
     });
-    
     document.getElementById('closeUsuarioModalBtn')?.addEventListener('click', () => cerrarModal(document.getElementById('usuarioModal')));
     document.getElementById('cancelUsuarioBtn')?.addEventListener('click', () => cerrarModal(document.getElementById('usuarioModal')));
-    
-    document.getElementById('btnVerUsuarios')?.addEventListener('click', () => {
-        window.location.href = '/usuarios';
-    });
-    
-    window.addEventListener('click', (e) => { 
-        const modal = document.getElementById('usuarioModal');
-        if (e.target === modal) cerrarModal(modal);
-    });
+    document.getElementById('btnVerUsuarios')?.addEventListener('click', () => navegarA('/usuarios'));
+    window.addEventListener('click', (e) => { const modal = document.getElementById('usuarioModal'); if (e.target === modal) cerrarModal(modal); });
 
+    // ========== EVENTOS ==========
+    document.getElementById('btnLockScreen')?.addEventListener('click', manualLock);
+    document.getElementById('btnLogoutFromLock')?.addEventListener('click', logoutFromLock);
+    document.getElementById('unlockForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usuario = document.getElementById('unlockUser').value.trim();
+        const password = document.getElementById('unlockPass').value;
+        if (!usuario || !password) {
+            document.getElementById('lockError').textContent = '❌ Ingresa usuario y contraseña';
+            document.getElementById('lockError').style.display = 'block';
+            return;
+        }
+        await unlockScreen(usuario, password);
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        if (confirm('¿Cerrar sesión?')) { 
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            localStorage.removeItem('screen_locked');
+            localStorage.removeItem('sesion_activa');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('nombre_completo');
+            localStorage.removeItem('rol');
+            localStorage.removeItem('login_time');
+            localStorage.removeItem('inv.user');
+            window.location.href = 'roles.html';
+        } 
+    });
+    
     function loadMode() { 
         const dark = localStorage.getItem('modoSupermercado') === 'true'; 
         if (dark) document.body.classList.add('dark'); 
         const modeBtn = document.getElementById('modeBtn'); 
         modeBtn.innerHTML = dark ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; 
     }
-    
     function toggleMode() { 
         document.body.classList.toggle('dark'); 
         const isDark = document.body.classList.contains('dark'); 
@@ -750,32 +932,25 @@
         const modeBtn = document.getElementById('modeBtn'); 
         modeBtn.innerHTML = isDark ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; 
     }
-    
-    function logout() { 
-        if (confirm('¿Cerrar sesión?')) { 
-            localStorage.removeItem('sesion_activa'); 
-            localStorage.removeItem('usuario'); 
-            localStorage.removeItem('nombre_completo'); 
-            localStorage.removeItem('rol'); 
-            localStorage.removeItem('login_time'); 
-            localStorage.removeItem('inv.user'); 
-            window.location.href = 'roles.html'; 
-        } 
+    function navegarA(destino) {
+        // Limpiar todos los estados de bloqueo
+        localStorage.removeItem('screen_locked_index');
+        localStorage.removeItem('screen_locked_inventario');
+        localStorage.removeItem('screen_locked_ventas');
+        localStorage.removeItem('screen_locked_alertas');
+        localStorage.removeItem('screen_locked_usuarios');
+        
+        window.location.href = destino;
     }
-    
-    function irAVentas() { window.location.href = '/ventas'; }
-    function irAProductos() { window.location.href = 'productos.html'; }
-    function irAAlertas() { window.location.href = 'alertas.html'; }
 
-    document.getElementById('logoutBtn')?.addEventListener('click', logout);
     document.getElementById('modeBtn')?.addEventListener('click', toggleMode);
-    document.getElementById('btnVender')?.addEventListener('click', irAVentas);
-    document.getElementById('btnProductos')?.addEventListener('click', irAProductos);
-    document.getElementById('btnAlertas')?.addEventListener('click', irAAlertas);
+    document.getElementById('btnVender')?.addEventListener('click', () => navegarA('/ventas'));
+    document.getElementById('btnProductos')?.addEventListener('click', () => navegarA('productos.html'));
+    document.getElementById('btnAlertas')?.addEventListener('click', () => navegarA('alertas.html'));
 
     loadMode();
     cargarEstadisticas();
-    setInterval(cargarEstadisticas, 30000);
+    setInterval(() => { if (!isLocked) cargarEstadisticas(); }, 30000);
 </script>
 </body>
 </html>

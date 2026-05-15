@@ -34,17 +34,48 @@
             --input-bg: #1e293b;
         }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px; transition: all 0.3s; }
+        
+        /* Clase para cuando está bloqueado - opaca el contenido */
+        body.locked .container {
+            opacity: 0.2;
+            pointer-events: none;
+            user-select: none;
+        }
+        
         .container { max-width: 1400px; margin: 0 auto; }
         .header { background: var(--card); border-radius: 20px; padding: 16px 24px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 15px; box-shadow: var(--shadow); }
         .logo h1 { font-size: 1.3rem; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        
+        .lock-timer {
+            background: var(--warning);
+            color: #1a2c3e;
+            border-radius: 40px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .lock-timer i { font-size: 0.9rem; }
+        .lock-timer.warning { background: var(--danger); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
         .btn { padding: 8px 18px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; font-family: 'Poppins', sans-serif; transition: all 0.2s; }
         .btn-primary { background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-danger { background: var(--danger); color: white; }
         .btn-success { background: var(--success); color: white; }
         .btn-warning { background: var(--warning); color: #1a2c3e; }
+        .btn-lock { background: #ff9800; color: #1a2c3e; }
         .btn-sm { padding: 6px 14px; font-size: 0.75rem; }
+        .btn-lock:hover { background: #f57c00; transform: translateY(-2px); }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        
         .table-container { background: var(--card); border-radius: 20px; overflow-x: auto; box-shadow: var(--shadow); }
         .usuarios-table { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 900px; }
         .usuarios-table th { background: var(--table-header); padding: 14px 10px; text-align: left; font-weight: 600; color: var(--primary); border: 1px solid var(--border); }
@@ -151,6 +182,46 @@
             margin-top: 4px;
         }
         
+        /* Modal de bloqueo */
+        .lock-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .lock-modal-content {
+            background: var(--card);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 450px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.4s ease;
+            position: relative;
+            z-index: 2001;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lock-icon { font-size: 4rem; color: var(--warning); margin-bottom: 16px; }
+        .lock-modal-content h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .lock-modal-content p { color: var(--muted); margin-bottom: 20px; font-size: 0.85rem; }
+        .lock-input-group { margin-bottom: 20px; text-align: left; }
+        .lock-input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+        .lock-input-group input { width: 100%; padding: 12px 16px; border-radius: 40px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+        .lock-input-group input:focus { outline: none; border-color: var(--primary); }
+        .lock-error { color: var(--danger); font-size: 0.7rem; margin-top: 8px; display: none; }
+        .lock-buttons { display: flex; gap: 12px; justify-content: center; }
+        .lock-buttons .btn { flex: 1; }
+        
         @media (max-width: 768px) { body { padding: 16px; } .form-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } }
     </style>
 </head>
@@ -161,9 +232,14 @@
             <h1><i class="fas fa-users"></i> Gestión de Usuarios</h1>
             <p>Administración de cuentas del sistema</p>
         </div>
-        <div>
-            <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-chart-line"></i> Dashboard</button>
+        <div style="display: flex; gap: 12px; align-items: center;">
+            <div class="lock-timer" id="lockTimer">
+                <i class="fas fa-hourglass-half"></i>
+                <span id="timerSeconds">30</span> segundos
+            </div>
+            <button class="btn btn-lock" id="btnLockScreen"><i class="fas fa-lock"></i> Bloquear</button>
             <button class="btn btn-outline" id="modeBtn"><i class="fas fa-moon"></i> Modo</button>
+            <button class="btn btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar</button>
         </div>
     </div>
     
@@ -250,11 +326,193 @@
     </div>
 </div>
 
+<!-- MODAL DE BLOQUEO -->
+<div id="lockModal" class="lock-modal">
+    <div class="lock-modal-content">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h2>Sesión Bloqueada</h2>
+        <p>Por seguridad, tu sesión ha sido bloqueada por inactividad.<br>Ingresa tus credenciales para continuar.</p>
+        <form id="unlockForm">
+            <div class="lock-input-group">
+                <label><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" id="unlockUser" placeholder="Ingresa tu usuario" autocomplete="off">
+            </div>
+            <div class="lock-input-group">
+                <label><i class="fas fa-key"></i> Contraseña</label>
+                <input type="password" id="unlockPass" placeholder="Ingresa tu contraseña">
+            </div>
+            <div id="lockError" class="lock-error">❌ Usuario o contraseña incorrectos</div>
+            <div class="lock-buttons">
+                <button type="button" class="btn btn-outline" id="btnLogoutFromLock"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-unlock-alt"></i> Desbloquear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     const API_URL = '/api';
     let rolesList = [];
     
-    // Funciones de validación
+    // ========== SISTEMA DE BLOQUEO (30 segundos) ==========
+    let inactivityTimer = null;
+    let countdownInterval = null;
+    let remainingSeconds = 30;
+    let isLocked = false;
+    
+    function resetInactivityTimer() {
+        if (isLocked) return;
+        
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        remainingSeconds = 30;
+        updateTimerDisplay();
+        
+        countdownInterval = setInterval(() => {
+            if (!isLocked && remainingSeconds > 0) {
+                remainingSeconds--;
+                updateTimerDisplay();
+            }
+        }, 1000);
+        
+        inactivityTimer = setTimeout(() => {
+            if (!isLocked) {
+                lockScreen();
+            }
+        }, 30000);
+    }
+    
+    function updateTimerDisplay() {
+        const timerSpan = document.getElementById('timerSeconds');
+        if (timerSpan) timerSpan.innerText = remainingSeconds;
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) {
+            if (remainingSeconds <= 10) {
+                timerDiv.classList.add('warning');
+            } else {
+                timerDiv.classList.remove('warning');
+            }
+        }
+    }
+    
+    function lockScreen() {
+        if (isLocked) return;
+        isLocked = true;
+        
+        localStorage.setItem('screen_locked_usuarios', 'true');
+        
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        document.body.classList.add('locked');
+        
+        const lockModal = document.getElementById('lockModal');
+        lockModal.style.display = 'flex';
+        document.getElementById('unlockUser').value = '';
+        document.getElementById('unlockPass').value = '';
+        document.getElementById('lockError').style.display = 'none';
+        
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
+    }
+    
+    async function unlockScreen(usuario, password) {
+        try {
+            let response = await fetch(`/login_admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, password })
+            });
+            
+            let data = await response.json();
+            
+            if (!data.success) {
+                response = await fetch(`/login_empleado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                data = await response.json();
+            }
+            
+            if (data.success && data.rol === 'Administrador') {
+                isLocked = false;
+                localStorage.removeItem('screen_locked_usuarios');
+                
+                document.body.classList.remove('locked');
+                
+                document.getElementById('lockModal').style.display = 'none';
+                document.getElementById('lockError').style.display = 'none';
+                
+                const timerDiv = document.getElementById('lockTimer');
+                if (timerDiv) timerDiv.style.opacity = '1';
+                
+                localStorage.setItem("sesion_activa", "true");
+                localStorage.setItem("usuario", data.usuario);
+                localStorage.setItem("nombre_completo", data.nombre_completo);
+                localStorage.setItem("rol", data.rol);
+                
+                resetInactivityTimer();
+                cargarUsuarios();
+                cargarRoles();
+                return true;
+            } else {
+                document.getElementById('lockError').textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
+                document.getElementById('lockError').style.display = 'block';
+                return false;
+            }
+        } catch (error) {
+            document.getElementById('lockError').textContent = '❌ Error de conexión';
+            document.getElementById('lockError').style.display = 'block';
+            return false;
+        }
+    }
+    
+    function logoutFromLock() {
+        localStorage.removeItem('screen_locked_usuarios');
+        localStorage.removeItem('sesion_activa');
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('nombre_completo');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('inv.user');
+        window.location.href = 'roles.html';
+    }
+    
+    function onUserActivity() {
+        if (!isLocked) {
+            resetInactivityTimer();
+        }
+    }
+    
+    function setupActivityListeners() {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+            document.addEventListener(event, onUserActivity);
+        });
+    }
+    
+    function manualLock() {
+        lockScreen();
+    }
+    
+    function checkLockStateOnLoad() {
+        const locked = localStorage.getItem('screen_locked_usuarios') === 'true';
+        if (locked) {
+            isLocked = true;
+            document.body.classList.add('locked');
+            const lockModal = document.getElementById('lockModal');
+            lockModal.style.display = 'flex';
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            const timerDiv = document.getElementById('lockTimer');
+            if (timerDiv) timerDiv.style.opacity = '0.5';
+        } else {
+            resetInactivityTimer();
+        }
+    }
+    
+    // ========== FUNCIONES DE USUARIOS ==========
     function soloLetras(texto) {
         return /^[a-zA-ZáéíóúñÁÉÍÓÚÑ\s]+$/.test(texto);
     }
@@ -281,7 +539,6 @@
         input.value = valor;
     }
     
-    // Función para formatear fecha a YYYY-MM-DD
     function formatearFecha(fecha) {
         if (!fecha) return '';
         const d = new Date(fecha);
@@ -348,6 +605,7 @@
     }
     
     async function toggleEstado(id, activo) {
+        if (isLocked) return;
         try {
             const res = await fetch(`${API_URL}/usuarios/${id}/estado`, {
                 method: 'PUT',
@@ -367,6 +625,7 @@
     }
     
     async function eliminarUsuario(id, usuario) {
+        if (isLocked) return;
         if (!confirm(`¿Eliminar permanentemente al usuario "${usuario}"?\nEsta acción no se puede deshacer.`)) return;
         try {
             const res = await fetch(`${API_URL}/usuarios/${id}`, { method: 'DELETE' });
@@ -383,16 +642,14 @@
     }
     
     async function abrirEditarUsuario(id) {
+        if (isLocked) return;
         try {
-            // Obtener datos específicos del usuario
             const resUsuarios = await fetch(`${API_URL}/usuarios`);
             const dataUsuarios = await resUsuarios.json();
             
             if (dataUsuarios.ok) {
                 const user = dataUsuarios.data.find(u => u.id === id);
                 if (user) {
-                    console.log('Usuario a editar:', user); // Para depuración
-                    
                     const selectRol = document.getElementById('editIdRol');
                     selectRol.innerHTML = '<option value="">Seleccionar rol</option>' + 
                         rolesList.map(rol => `<option value="${rol.id}" ${rol.id === user.id_rol ? 'selected' : ''}>${rol.nombre_rol}</option>`).join('');
@@ -404,25 +661,14 @@
                     document.getElementById('editTelefono').value = user.telefono || '';
                     document.getElementById('editDireccion').value = user.direccion || '';
                     
-                    // CORREGIDO: Formatear fechas correctamente
                     if (user.fecha_nacimiento) {
-                        const fechaNac = new Date(user.fecha_nacimiento);
-                        if (!isNaN(fechaNac.getTime())) {
-                            document.getElementById('editFechaNacimiento').value = formatearFecha(user.fecha_nacimiento);
-                        } else {
-                            document.getElementById('editFechaNacimiento').value = '';
-                        }
+                        document.getElementById('editFechaNacimiento').value = formatearFecha(user.fecha_nacimiento);
                     } else {
                         document.getElementById('editFechaNacimiento').value = '';
                     }
                     
                     if (user.fecha_contratacion) {
-                        const fechaCont = new Date(user.fecha_contratacion);
-                        if (!isNaN(fechaCont.getTime())) {
-                            document.getElementById('editFechaContratacion').value = formatearFecha(user.fecha_contratacion);
-                        } else {
-                            document.getElementById('editFechaContratacion').value = '';
-                        }
+                        document.getElementById('editFechaContratacion').value = formatearFecha(user.fecha_contratacion);
                     } else {
                         document.getElementById('editFechaContratacion').value = '';
                     }
@@ -513,7 +759,6 @@
         
         const userId = document.getElementById('editUserId').value;
         
-        // Obtener valores de las fechas
         let fechaNacimiento = document.getElementById('editFechaNacimiento').value;
         let fechaContratacion = document.getElementById('editFechaContratacion').value;
         
@@ -533,8 +778,6 @@
         if (newPassword) {
             usuarioData.password = newPassword;
         }
-        
-        console.log('Enviando datos:', usuarioData); // Para depuración
         
         try {
             const res = await fetch(`${API_URL}/usuarios/${userId}`, {
@@ -562,10 +805,7 @@
     
     function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
     
-    document.getElementById('volverDashboard')?.addEventListener('click', () => {
-        window.location.href = '/dashboard';
-    });
-    
+    // Eventos de cierre de modal
     document.getElementById('closeEditarModalBtn')?.addEventListener('click', () => cerrarModal(document.getElementById('editarUsuarioModal')));
     document.getElementById('cancelEditarBtn')?.addEventListener('click', () => cerrarModal(document.getElementById('editarUsuarioModal')));
     
@@ -594,17 +834,69 @@
         });
     }
     
+    function navegarA(destino) {
+        localStorage.removeItem('screen_locked_usuarios');
+        localStorage.removeItem('screen_locked_index');
+        localStorage.removeItem('screen_locked_inventario');
+        localStorage.removeItem('screen_locked_ventas');
+        localStorage.removeItem('screen_locked_alertas');
+        window.location.href = destino;
+    }
+    
+    // Si hay botones para volver al dashboard
+    document.getElementById('volverDashboard')?.addEventListener('click', () => navegarA('/dashboard'));
+    
+    // Modo oscuro
     const modeBtn = document.getElementById('modeBtn');
     if (localStorage.getItem('modoSupermercado') === 'true') document.body.classList.add('dark');
     modeBtn.addEventListener('click', () => {
         document.body.classList.toggle('dark');
         localStorage.setItem('modoSupermercado', document.body.classList.contains('dark'));
-        modeBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
+        modeBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro';
     });
     
+    // Eventos de bloqueo
+    document.getElementById('btnLockScreen')?.addEventListener('click', manualLock);
+    document.getElementById('btnLogoutFromLock')?.addEventListener('click', logoutFromLock);
+    document.getElementById('unlockForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usuario = document.getElementById('unlockUser').value.trim();
+        const password = document.getElementById('unlockPass').value;
+        if (!usuario || !password) {
+            document.getElementById('lockError').textContent = '❌ Ingresa usuario y contraseña';
+            document.getElementById('lockError').style.display = 'block';
+            return;
+        }
+        await unlockScreen(usuario, password);
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        if (confirm('¿Cerrar sesión?')) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            localStorage.removeItem('screen_locked_usuarios');
+            localStorage.removeItem('sesion_activa');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('nombre_completo');
+            localStorage.removeItem('rol');
+            localStorage.removeItem('inv.user');
+            window.location.href = 'roles.html';
+        }
+    });
+    
+    // Exponer funciones globales
+    window.abrirEditarUsuario = abrirEditarUsuario;
+    window.toggleEstado = toggleEstado;
+    window.eliminarUsuario = eliminarUsuario;
+    
     // Inicializar
+    setupActivityListeners();
+    checkLockStateOnLoad();
     cargarRoles();
     cargarUsuarios();
+    
+    console.log('✅ Sistema de gestión de usuarios listo!');
+    console.log('🔒 Bloqueo por inactividad: 30 segundos');
 </script>
 </body>
 </html>

@@ -38,9 +38,16 @@
         }
 
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px; transition: all 0.3s; height: 100vh; overflow: hidden; }
+        
+        /* Clase para cuando está bloqueado - opaca el contenido SIN BLUR */
+        body.locked .container {
+            opacity: 0.2;
+            pointer-events: none;
+            user-select: none;
+        }
+        
         .container { max-width: 1600px; margin: 0 auto; height: 100%; display: flex; flex-direction: column; }
         
-        /* Header estilo index_admin */
         .top { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; flex-wrap: wrap; gap: 15px; background: var(--card); border-radius: 24px; padding: 16px 24px; box-shadow: var(--shadow); }
         .brand h1 { font-size: 1.2rem; font-weight: 700; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .brand p { margin-top: 2px; color: var(--muted); font-size: 0.7rem; }
@@ -52,15 +59,36 @@
         .btn-success { background: var(--success); color: white; }
         .btn-warning { background: var(--warning); color: #1a2c3e; }
         .btn-info { background: var(--info); color: white; }
+        .btn-lock { background: #ff9800; color: #1a2c3e; }
+        .btn-lock:hover { background: #f57c00; transform: translateY(-2px); }
         .btn-success:hover { background: #1b5e20; transform: translateY(-2px); }
         .btn-danger:hover { background: #b71c1c; transform: translateY(-2px); }
         .btn-warning:hover { background: #f57c00; transform: translateY(-2px); }
         .btn-info:hover { background: #0277bd; transform: translateY(-2px); }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
         
+        .lock-timer {
+            background: var(--warning);
+            color: #1a2c3e;
+            border-radius: 40px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-left: auto;
+        }
+        .lock-timer i { font-size: 0.9rem; }
+        .lock-timer.warning { background: var(--danger); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
         .pos-main { display: flex; flex: 1; gap: 20px; overflow: hidden; min-height: 0; }
         
-        /* Columna del carrito */
         .cart-column { flex: 7; background: var(--card); border-radius: 20px; display: flex; flex-direction: column; overflow: hidden; box-shadow: var(--shadow); }
         .quick-search { padding: 16px; background: var(--card); border-bottom: 1px solid var(--border); position: relative; }
         .search-input-wrapper { display: flex; gap: 10px; background: var(--bg); border-radius: 50px; padding: 5px 18px; border: 2px solid var(--border); transition: all 0.2s; }
@@ -68,7 +96,6 @@
         .search-input-wrapper i { font-size: 1.1rem; color: var(--muted); align-self: center; }
         .search-input-wrapper input { flex: 1; padding: 12px 0; border: none; background: transparent; font-size: 1rem; font-family: 'Poppins', sans-serif; color: var(--text); outline: none; }
         
-        /* Sugerencias */
         .suggestions-container { position: absolute; top: 100%; left: 0; right: 0; background: var(--card); border-radius: 16px; box-shadow: var(--shadow); margin-top: 8px; z-index: 100; max-height: 300px; overflow-y: auto; display: none; border: 1px solid var(--border); }
         .suggestion-item { padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; border-bottom: 1px solid var(--border); transition: all 0.2s; }
         .suggestion-item:hover { background: var(--bg); }
@@ -94,7 +121,6 @@
         .empty-cart { text-align: center; padding: 60px 20px; color: var(--muted); }
         .empty-cart i { font-size: 3rem; margin-bottom: 15px; }
         
-        /* Columna de pago */
         .payment-column { flex: 3; background: var(--card); border-radius: 20px; display: flex; flex-direction: column; padding: 20px; gap: 15px; overflow-y: auto; box-shadow: var(--shadow); }
         .totals-card { background: var(--bg); border-radius: 16px; padding: 20px; }
         .total-row { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 0.9rem; }
@@ -105,7 +131,6 @@
         .btn-clear-cart { background: var(--danger); color: white; }
         .btn-checkout:hover, .btn-clear-cart:hover { transform: translateY(-2px); filter: brightness(1.05); }
         
-        /* Modales */
         .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: flex; justify-content: center; align-items: center; z-index: 2000; animation: fadeIn 0.3s ease; }
         .modal-content { background: var(--card); border-radius: 24px; padding: 35px; width: 90%; max-width: 420px; text-align: center; animation: slideUp 0.3s ease; }
         .modal-content h3 { margin-bottom: 20px; color: var(--primary); font-size: 1.3rem; }
@@ -130,7 +155,47 @@
         .btn-imprimir:hover { transform: translateY(-2px); filter: brightness(1.05); }
         .modal-buttons-print { display: flex; gap: 12px; justify-content: center; margin-top: 20px; flex-wrap: wrap; }
         
-        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; z-index: 2002; animation: slideUp 0.3s ease; box-shadow: var(--shadow); white-space: nowrap; }
+        /* Modal de bloqueo */
+        .lock-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2002;
+        }
+        .lock-modal-content {
+            background: var(--card);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 450px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.4s ease;
+            position: relative;
+            z-index: 2003;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lock-icon { font-size: 4rem; color: var(--warning); margin-bottom: 16px; }
+        .lock-modal-content h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .lock-modal-content p { color: var(--muted); margin-bottom: 20px; font-size: 0.85rem; }
+        .lock-input-group { margin-bottom: 20px; text-align: left; }
+        .lock-input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+        .lock-input-group input { width: 100%; padding: 12px 16px; border-radius: 40px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+        .lock-input-group input:focus { outline: none; border-color: var(--primary); }
+        .lock-error { color: var(--danger); font-size: 0.7rem; margin-top: 8px; display: none; }
+        .lock-buttons { display: flex; gap: 12px; justify-content: center; }
+        .lock-buttons .btn { flex: 1; }
+        
+        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; z-index: 2004; animation: slideUp 0.3s ease; box-shadow: var(--shadow); white-space: nowrap; }
         .toast-error { background: var(--danger); }
         
         @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
@@ -146,15 +211,20 @@
 </head>
 <body>
 <div class="container">
-    <!-- Header estilo index_admin -->
     <div class="top">
         <div class="brand">
             <h1><i class="fas fa-cash-register"></i> PUNTO DE VENTA</h1>
             <p>Mini Super M&H - Tickets PDF</p>
         </div>
         <div class="top-buttons">
+            <div class="lock-timer" id="lockTimer">
+                <i class="fas fa-hourglass-half"></i>
+                <span id="timerSeconds">30</span> segundos
+            </div>
+            <button class="btn btn-lock" id="btnLockScreen"><i class="fas fa-lock"></i> Bloquear</button>
             <button class="btn btn-outline" id="modoOscuroBtn"><i class="fas fa-moon"></i> Oscuro</button>
             <button class="btn btn-outline" id="verRegistroVentas"><i class="fas fa-receipt"></i> Registro</button>
+            <button class="btn btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar</button>
         </div>
     </div>
     
@@ -219,6 +289,30 @@
     </div>
 </div>
 
+<!-- MODAL DE BLOQUEO -->
+<div id="lockModal" class="lock-modal">
+    <div class="lock-modal-content">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h2>Sesión Bloqueada</h2>
+        <p>Por seguridad, tu sesión ha sido bloqueada por inactividad o al recargar la página.<br>Ingresa tus credenciales para continuar.</p>
+        <form id="unlockForm">
+            <div class="lock-input-group">
+                <label><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" id="unlockUser" placeholder="Ingresa tu usuario" autocomplete="off">
+            </div>
+            <div class="lock-input-group">
+                <label><i class="fas fa-key"></i> Contraseña</label>
+                <input type="password" id="unlockPass" placeholder="Ingresa tu contraseña">
+            </div>
+            <div id="lockError" class="lock-error">❌ Usuario o contraseña incorrectos</div>
+            <div class="lock-buttons">
+                <button type="button" class="btn btn-outline" id="btnLogoutFromLock"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-unlock-alt"></i> Desbloquear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     const API_URL = '/api';
     let productos = [];
@@ -228,14 +322,155 @@
     let productosFiltrados = [];
     let selectedSuggestionIndex = -1;
     
-    const searchInput = document.getElementById('searchProducto');
-    const suggestionsContainer = document.getElementById('suggestionsContainer');
-    const cartTableBody = document.getElementById('cartTableBody');
-    const subtotalSpan = document.getElementById('subtotal');
-    const totalSpan = document.getElementById('total');
-    const finalizarVentaBtn = document.getElementById('finalizarVentaBtn');
-    const clearCartBtn = document.getElementById('clearCartBtn');
+    // ========== SISTEMA DE BLOQUEO (30 segundos) - CON PERSISTENCIA ==========
+    let inactivityTimer = null;
+    let countdownInterval = null;
+    let remainingSeconds = 30;
+    let isLocked = false;
     
+    function persistLockState(locked) {
+        if (locked) {
+            localStorage.setItem('ventas_locked', 'true');
+        } else {
+            localStorage.removeItem('ventas_locked');
+        }
+    }
+    
+    function resetInactivityTimer() {
+        if (isLocked) return;
+        
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        remainingSeconds = 30;
+        updateTimerDisplay();
+        
+        countdownInterval = setInterval(() => {
+            if (!isLocked && remainingSeconds > 0) {
+                remainingSeconds--;
+                updateTimerDisplay();
+            }
+        }, 1000);
+        
+        inactivityTimer = setTimeout(() => {
+            if (!isLocked) {
+                lockScreen();
+            }
+        }, 30000);
+    }
+    
+    function updateTimerDisplay() {
+        const timerSpan = document.getElementById('timerSeconds');
+        if (timerSpan) timerSpan.innerText = remainingSeconds;
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) {
+            if (remainingSeconds <= 10) {
+                timerDiv.classList.add('warning');
+            } else {
+                timerDiv.classList.remove('warning');
+            }
+        }
+    }
+    
+    function lockScreen() {
+        if (isLocked) return;
+        isLocked = true;
+        persistLockState(true);
+        
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        document.body.classList.add('locked');
+        
+        const lockModal = document.getElementById('lockModal');
+        lockModal.style.display = 'flex';
+        document.getElementById('unlockUser').value = '';
+        document.getElementById('unlockPass').value = '';
+        document.getElementById('lockError').style.display = 'none';
+        
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
+    }
+    
+    async function unlockScreen(usuario, password) {
+        try {
+            let response = await fetch(`/login_admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, password })
+            });
+            
+            let data = await response.json();
+            
+            if (!data.success) {
+                response = await fetch(`/login_empleado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                data = await response.json();
+            }
+            
+            if (data.success && data.rol === 'Administrador') {
+                isLocked = false;
+                persistLockState(false);
+                
+                document.body.classList.remove('locked');
+                
+                document.getElementById('lockModal').style.display = 'none';
+                document.getElementById('lockError').style.display = 'none';
+                
+                const timerDiv = document.getElementById('lockTimer');
+                if (timerDiv) timerDiv.style.opacity = '1';
+                
+                localStorage.setItem("sesion_activa", "true");
+                localStorage.setItem("usuario", data.usuario);
+                localStorage.setItem("nombre_completo", data.nombre_completo);
+                localStorage.setItem("rol", data.rol);
+                
+                resetInactivityTimer();
+                await cargarProductos();
+                return true;
+            } else {
+                document.getElementById('lockError').textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
+                document.getElementById('lockError').style.display = 'block';
+                return false;
+            }
+        } catch (error) {
+            document.getElementById('lockError').textContent = '❌ Error de conexión';
+            document.getElementById('lockError').style.display = 'block';
+            return false;
+        }
+    }
+    
+    function logoutFromLock() {
+        localStorage.removeItem('sesion_activa');
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('nombre_completo');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('inv.user');
+        localStorage.removeItem('ventas_locked');
+        window.location.href = 'roles.html';
+    }
+    
+    function onUserActivity() {
+        if (!isLocked) {
+            resetInactivityTimer();
+        }
+    }
+    
+    function setupActivityListeners() {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+            document.addEventListener(event, onUserActivity);
+        });
+    }
+    
+    function manualLock() {
+        lockScreen();
+    }
+    
+    // ========== FUNCIONES DE VENTAS ==========
     function escapeHtml(str) {
         if (!str) return '';
         return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]);
@@ -298,7 +533,7 @@
                         <i class="fas fa-trash"></i>
                     </button>
                 </td>
-            </tr>
+            </table>
         `).join('');
     }
     
@@ -334,9 +569,6 @@
         }
     }
     
-    // ============================================
-    // SUGERENCIAS EN TIEMPO REAL
-    // ============================================
     function buscarSugerencias(termino) {
         if (!termino || termino.length < 1) {
             productosFiltrados = [];
@@ -451,9 +683,6 @@
         searchInput.focus();
     }
     
-    // ============================================
-    // GUARDAR PDF EN EL SERVIDOR
-    // ============================================
     async function guardarPDFEnServidor(pdfBlob, filename) {
         try {
             const formData = new FormData();
@@ -478,9 +707,6 @@
         }
     }
     
-    // ============================================
-    // FUNCIÓN PARA IMPRIMIR PDF
-    // ============================================
     function imprimirPDF(pdfBlob, filename) {
         const blobURL = URL.createObjectURL(pdfBlob);
         const ventanaImpresion = window.open(blobURL, '_blank');
@@ -498,9 +724,6 @@
         }, 10000);
     }
     
-    // ============================================
-    // GENERAR PDF COMPLETO
-    // ============================================
     async function generarTicketPDF(ventaData, soloGenerar = false) {
         try {
             if (typeof window.jspdf === 'undefined') {
@@ -640,9 +863,6 @@
         }
     }
     
-    // ============================================
-    // MODAL PAGO
-    // ============================================
     function mostrarModalPago(total, callback) {
         const modalDiv = document.createElement('div');
         modalDiv.className = 'modal-overlay';
@@ -686,9 +906,6 @@
         };
     }
     
-    // ============================================
-    // MODAL VUELTO CON OPCIÓN DE IMPRIMIR
-    // ============================================
     function mostrarModalVuelto(cashAmount, total, folio, productosVendidos, subtotal, vendedor, callback) {
         const change = cashAmount - total;
         const modalDiv = document.createElement('div');
@@ -743,9 +960,6 @@
         };
     }
     
-    // ============================================
-    // FINALIZAR VENTA
-    // ============================================
     async function finalizarVenta() {
         if (carrito.length === 0) {
             mostrarNotificacion('🛒 El carrito está vacío', 'error');
@@ -800,9 +1014,6 @@
         });
     }
     
-    // ============================================
-    // CARGAR PRODUCTOS
-    // ============================================
     async function cargarProductos() {
         try {
             const res = await fetch(`${API_URL}/products`);
@@ -819,9 +1030,15 @@
         }
     }
     
-    // ============================================
-    // EVENTOS DEL TECLADO
-    // ============================================
+    // ========== EVENTOS ==========
+    const searchInput = document.getElementById('searchProducto');
+    const suggestionsContainer = document.getElementById('suggestionsContainer');
+    const cartTableBody = document.getElementById('cartTableBody');
+    const subtotalSpan = document.getElementById('subtotal');
+    const totalSpan = document.getElementById('total');
+    const finalizarVentaBtn = document.getElementById('finalizarVentaBtn');
+    const clearCartBtn = document.getElementById('clearCartBtn');
+    
     searchInput.addEventListener('input', (e) => {
         buscarSugerencias(e.target.value);
     });
@@ -862,18 +1079,21 @@
         if (!searchInput.contains(e.target) && !suggestionsContainer.contains(e.target)) {
             ocultarSugerencias();
         }
+        if (!isLocked) resetInactivityTimer();
     });
     
-    finalizarVentaBtn.addEventListener('click', finalizarVenta);
-    clearCartBtn.addEventListener('click', limpiarCarrito);
+    finalizarVentaBtn.addEventListener('click', () => { if (!isLocked) finalizarVenta(); });
+    clearCartBtn.addEventListener('click', () => { if (!isLocked) limpiarCarrito(); });
     
+    function navegarA(destino) {
+        window.location.href = destino;
+    }
+
     document.getElementById('verRegistroVentas')?.addEventListener('click', () => {
-        window.location.href = '/registro_ventas';
+        if (!isLocked) navegarA('/registro_ventas');
     });
     
-    // ============================================
-    // MODO OSCURO
-    // ============================================
+    // ========== MODO OSCURO ==========
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() {
         document.body.classList.toggle('dark');
@@ -887,23 +1107,63 @@
     }
     modoBtn.addEventListener('click', toggleModo);
     
-    // ============================================
-    // FUNCIONES GLOBALES
-    // ============================================
+    // ========== BLOQUEO ==========
+    document.getElementById('btnLockScreen')?.addEventListener('click', manualLock);
+    document.getElementById('btnLogoutFromLock')?.addEventListener('click', logoutFromLock);
+    document.getElementById('unlockForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usuario = document.getElementById('unlockUser').value.trim();
+        const password = document.getElementById('unlockPass').value;
+        if (!usuario || !password) {
+            document.getElementById('lockError').textContent = '❌ Ingresa usuario y contraseña';
+            document.getElementById('lockError').style.display = 'block';
+            return;
+        }
+        await unlockScreen(usuario, password);
+    });
+    
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        if (confirm('¿Cerrar sesión?')) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            localStorage.removeItem('sesion_activa');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('nombre_completo');
+            localStorage.removeItem('rol');
+            localStorage.removeItem('inv.user');
+            localStorage.removeItem('ventas_locked');
+            window.location.href = 'roles.html';
+        }
+    });
+    
+    // ========== FUNCIONES GLOBALES ==========
     window.cambiarCantidad = cambiarCantidad;
     window.eliminarDelCarrito = eliminarDelCarrito;
     window.seleccionarProducto = seleccionarProducto;
     
-    // ============================================
-    // INICIAR
-    // ============================================
+    // ========== INICIAR ==========
+    // Verificar si hay un estado de bloqueo persistente al cargar la página
+    const wasLocked = localStorage.getItem('ventas_locked') === 'true';
+    if (wasLocked) {
+        // Si estaba bloqueado, bloquear inmediatamente
+        isLocked = true;
+        document.body.classList.add('locked');
+        document.getElementById('lockModal').style.display = 'flex';
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
+    } else {
+        setupActivityListeners();
+        resetInactivityTimer();
+    }
+    
     cargarProductos();
     searchInput.focus();
     
     console.log('✅ Sistema de ventas listo!');
+    console.log('🔒 Bloqueo por inactividad: 30 segundos (PERSISTE al recargar la página)');
     console.log('💡 Los tickets PDF se guardan automáticamente en el servidor');
-    console.log('🔍 Buscador con sugerencias en tiempo real activado');
-    console.log('⌨️ Usa las flechas ↑ ↓ para navegar y Enter para seleccionar');
 </script>
 </body>
 </html>

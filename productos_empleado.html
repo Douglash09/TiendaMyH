@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -38,20 +39,50 @@
             --error: #2a0a0a; --error-border: #ef5350;
         }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px; transition: all 0.3s; }
+        
+        /* Clase para cuando está bloqueado - opaca el contenido */
+        body.locked .container {
+            opacity: 0.2;
+            pointer-events: none;
+            user-select: none;
+        }
+        
         .container { max-width: 1600px; margin: 0 auto; }
         .header-bar { background: var(--card); border-radius: 24px; padding: 20px 28px; margin-bottom: 28px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
         .logo h1 { font-size: 1.6rem; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo p { font-size: 0.8rem; color: var(--muted); }
-        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
         .btn { padding: 10px 20px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Poppins', sans-serif; background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
+        .btn-lock { background: #ff9800; color: #1a2c3e; }
+        .btn-lock:hover { background: #f57c00; transform: translateY(-2px); }
         .btn-secondary { background: #6c757d; }
         .btn-clear { background: #6c757d; color: white; }
         .btn-clear:hover { background: #5a6268; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        
+        .lock-timer {
+            background: var(--warning);
+            color: #1a2c3e;
+            border-radius: 40px;
+            padding: 6px 14px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .lock-timer i { font-size: 0.9rem; }
+        .lock-timer.warning { background: var(--danger); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
         .alert-banner { background: linear-gradient(135deg, #ff6b6b, #c92a2a); color: white; padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; cursor: pointer; }
         
         .filters-panel {
@@ -303,6 +334,48 @@
             border-radius: 8px;
         }
         
+        /* Modal de bloqueo */
+        .lock-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .lock-modal-content {
+            background: var(--card);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 450px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.4s ease;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lock-icon { font-size: 4rem; color: var(--warning); margin-bottom: 16px; }
+        .lock-modal-content h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .lock-modal-content p { color: var(--muted); margin-bottom: 20px; font-size: 0.85rem; }
+        .lock-input-group { margin-bottom: 20px; text-align: left; }
+        .lock-input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+        .lock-input-group input { width: 100%; padding: 12px 16px; border-radius: 40px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+        .lock-input-group input:focus { outline: none; border-color: var(--primary); }
+        .lock-error { color: var(--danger); font-size: 0.7rem; margin-top: 8px; display: none; }
+        .lock-buttons { display: flex; gap: 12px; justify-content: center; }
+        .lock-buttons .btn { flex: 1; }
+        
+        .toast-notification { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: var(--success); color: white; padding: 12px 24px; border-radius: 50px; font-weight: 600; font-size: 0.9rem; z-index: 2001; animation: slideUp 0.3s ease; box-shadow: var(--shadow); white-space: nowrap; }
+        .toast-error { background: var(--danger); }
+        @keyframes slideUp { from { transform: translateX(-50%) translateY(100px); opacity: 0; } to { transform: translateX(-50%) translateY(0); opacity: 1; } }
+        
         @media (max-width: 768px) { .form-grid, .details-grid { grid-template-columns: 1fr; } .full-width { grid-column: span 1; } body { padding: 16px; } }
     </style>
 </head>
@@ -314,6 +387,11 @@
             <p>Consulta de inventario - Solo lectura</p>
         </div>
         <div class="header-actions">
+            <div class="lock-timer" id="lockTimer">
+                <i class="fas fa-hourglass-half"></i>
+                <span id="timerSeconds">30</span> segundos
+            </div>
+            <button class="btn btn-lock" id="btnLockScreen"><i class="fas fa-lock"></i> Bloquear</button>
             <button class="btn" id="modoOscuroBtn"><i class="fas fa-moon"></i> Modo</button>
             <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
             <button class="btn btn-outline" id="irVentas"><i class="fas fa-cash-register"></i> Ventas</button>
@@ -383,7 +461,7 @@
                 </tr>
             </thead>
             <tbody id="tableBody">
-                <tr><td colspan="10" style="text-align:center">Cargando productos......</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></td>
+                <tr><td colspan="10" style="text-align:center">Cargando productos......</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></tr>
             </tbody>
         </table>
     </div>
@@ -412,11 +490,183 @@
     </div>
 </div>
 
+<!-- MODAL DE BLOQUEO -->
+<div id="lockModal" class="lock-modal">
+    <div class="lock-modal-content">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h2>Sesión Bloqueada</h2>
+        <p>Por seguridad, tu sesión ha sido bloqueada por inactividad o al recargar la página.<br>Ingresa tus credenciales para continuar.</p>
+        <form id="unlockForm">
+            <div class="lock-input-group">
+                <label><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" id="unlockUser" placeholder="Ingresa tu usuario" autocomplete="off">
+            </div>
+            <div class="lock-input-group">
+                <label><i class="fas fa-key"></i> Contraseña</label>
+                <input type="password" id="unlockPass" placeholder="Ingresa tu contraseña">
+            </div>
+            <div id="lockError" class="lock-error">❌ Usuario o contraseña incorrectos</div>
+            <div class="lock-buttons">
+                <button type="button" class="btn btn-outline" id="btnLogoutFromLock"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-unlock-alt"></i> Desbloquear</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <script>
     const API_URL = 'http://localhost:3000/api';
     let productos = [];
     let lotesPorProducto = {};
     let productosFiltrados = [];
+
+    // ========== SISTEMA DE BLOQUEO (30 segundos) - CON PERSISTENCIA ==========
+    let inactivityTimer = null;
+    let countdownInterval = null;
+    let remainingSeconds = 30;
+    let isLocked = false;
+    
+    function persistLockState(locked) {
+        if (locked) {
+            localStorage.setItem('inventario_locked', 'true');
+        } else {
+            localStorage.removeItem('inventario_locked');
+        }
+    }
+    
+    function resetInactivityTimer() {
+        if (isLocked) return;
+        
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (countdownInterval) clearInterval(countdownInterval);
+        
+        remainingSeconds = 30;
+        updateTimerDisplay();
+        
+        countdownInterval = setInterval(() => {
+            if (!isLocked && remainingSeconds > 0) {
+                remainingSeconds--;
+                updateTimerDisplay();
+            }
+        }, 1000);
+        
+        inactivityTimer = setTimeout(() => {
+            if (!isLocked) {
+                lockScreen();
+            }
+        }, 30000);
+    }
+    
+    function updateTimerDisplay() {
+        const timerSpan = document.getElementById('timerSeconds');
+        if (timerSpan) timerSpan.innerText = remainingSeconds;
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) {
+            if (remainingSeconds <= 10) {
+                timerDiv.classList.add('warning');
+            } else {
+                timerDiv.classList.remove('warning');
+            }
+        }
+    }
+    
+    function lockScreen() {
+        if (isLocked) return;
+        isLocked = true;
+        persistLockState(true);
+        
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        document.body.classList.add('locked');
+        
+        const lockModal = document.getElementById('lockModal');
+        lockModal.style.display = 'flex';
+        document.getElementById('unlockUser').value = '';
+        document.getElementById('unlockPass').value = '';
+        document.getElementById('lockError').style.display = 'none';
+        
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
+    }
+    
+    async function unlockScreen(usuario, password) {
+        try {
+            let response = await fetch(`/login_admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, password })
+            });
+            
+            let data = await response.json();
+            
+            if (!data.success) {
+                response = await fetch(`/login_empleado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                data = await response.json();
+            }
+            
+            if (data.success && (data.rol === 'Administrador' || data.rol === 'Empleado' || data.rol === 'empleado')) {
+                isLocked = false;
+                persistLockState(false);
+                
+                document.body.classList.remove('locked');
+                
+                document.getElementById('lockModal').style.display = 'none';
+                document.getElementById('lockError').style.display = 'none';
+                
+                const timerDiv = document.getElementById('lockTimer');
+                if (timerDiv) timerDiv.style.opacity = '1';
+                
+                localStorage.setItem("sesion_activa", "true");
+                localStorage.setItem("usuario", data.usuario);
+                localStorage.setItem("nombre_completo", data.nombre_completo);
+                localStorage.setItem("rol", data.rol);
+                
+                resetInactivityTimer();
+                cargarProductos();
+                return true;
+            } else {
+                document.getElementById('lockError').textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
+                document.getElementById('lockError').style.display = 'block';
+                return false;
+            }
+        } catch (error) {
+            document.getElementById('lockError').textContent = '❌ Error de conexión';
+            document.getElementById('lockError').style.display = 'block';
+            return false;
+        }
+    }
+    
+    function logoutFromLock() {
+        localStorage.removeItem('sesion_activa');
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('nombre_completo');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('inv.user');
+        localStorage.removeItem('inventario_locked');
+        window.location.href = 'roles.html';
+    }
+    
+    function onUserActivity() {
+        if (!isLocked) {
+            resetInactivityTimer();
+        }
+    }
+    
+    function setupActivityListeners() {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+            document.addEventListener(event, onUserActivity);
+        });
+    }
+    
+    function manualLock() {
+        lockScreen();
+    }
 
     // DOM Elements
     const tableBody = document.getElementById('tableBody');
@@ -578,7 +828,7 @@
 
     async function renderTabla(productosArray) {
         if (!productosArray.length) { 
-            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center">📭 No hay productos registrados</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></table>'; 
+            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center">📭 No hay productos registrados</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></tr>'; 
             return; 
         }
         
@@ -619,7 +869,7 @@
                 <td>${expiryStatus}</td>
                 <td><small>${escapeHtml(unidadFormato)}</small></td>
                 <td>${loteHtml}</td>
-            </table>`;
+            </tr>`;
         }).join('');
         checkExpiryDates();
     }
@@ -694,7 +944,7 @@
                 filtrosStats.innerHTML = `📊 Mostrando ${productos.length} de ${productos.length} productos`;
             }
         } catch (error) {
-            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center">⚠️ Error conectando al servidor</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></tr>';
+            tableBody.innerHTML = '<tr><td colspan="10" style="text-align:center">⚠️ Error conectando al servidor</td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td><td style="display:none;"></td></tr>';
         }
     }
 
@@ -740,19 +990,20 @@
         }
     }
 
-    buscarBtn.addEventListener('click', () => buscarPorCodigo(barcodeInput.value));
-    limpiarTodoBtn.addEventListener('click', limpiarTodo);
-    aplicarFiltrosBtn.addEventListener('click', aplicarFiltros);
-    limpiarFiltrosBtn.addEventListener('click', limpiarFiltros);
+    // ========== EVENTOS ==========
+    buscarBtn.addEventListener('click', () => { if (!isLocked) buscarPorCodigo(barcodeInput.value); });
+    limpiarTodoBtn.addEventListener('click', () => { if (!isLocked) limpiarTodo(); });
+    aplicarFiltrosBtn.addEventListener('click', () => { if (!isLocked) aplicarFiltros(); });
+    limpiarFiltrosBtn.addEventListener('click', () => { if (!isLocked) limpiarFiltros(); });
     
     document.addEventListener('keydown', (e) => {
-        if (e.key === 'Escape') {
+        if (!isLocked && e.key === 'Escape') {
             limpiarTodo();
         }
     });
     
     barcodeInput.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
+        if (!isLocked && e.key === 'Enter') {
             buscarPorCodigo(barcodeInput.value);
         }
     });
@@ -776,16 +1027,51 @@
     
     const volverDashboard = document.getElementById('volverDashboard');
     const irVentas = document.getElementById('irVentas');
-    volverDashboard.addEventListener('click', () => { window.location.href = '/dashboard'; });
-    irVentas.addEventListener('click', () => { window.location.href = '/ventas'; });
+    volverDashboard.addEventListener('click', () => { if (!isLocked) window.location.href = '/dashboard'; });
+    irVentas.addEventListener('click', () => { if (!isLocked) window.location.href = '/ventas'; });
 
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }
     if (localStorage.getItem('modoSupermercado') === 'true') { document.body.classList.add('dark'); modoBtn.innerHTML = '<i class="fas fa-sun"></i> Claro'; }
     modoBtn.addEventListener('click', toggleModo);
 
+    // ========== BLOQUEO ==========
+    document.getElementById('btnLockScreen')?.addEventListener('click', manualLock);
+    document.getElementById('btnLogoutFromLock')?.addEventListener('click', logoutFromLock);
+    document.getElementById('unlockForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usuario = document.getElementById('unlockUser').value.trim();
+        const password = document.getElementById('unlockPass').value;
+        if (!usuario || !password) {
+            document.getElementById('lockError').textContent = '❌ Ingresa usuario y contraseña';
+            document.getElementById('lockError').style.display = 'block';
+            return;
+        }
+        await unlockScreen(usuario, password);
+    });
+    
+    document.addEventListener('click', (e) => { if (!isLocked) resetInactivityTimer(); });
+    document.addEventListener('keypress', (e) => { if (!isLocked) resetInactivityTimer(); });
+    document.addEventListener('mousemove', (e) => { if (!isLocked) resetInactivityTimer(); });
+
+    // ========== INICIAR ==========
     initFiltersCollapse();
+    
+    // Verificar si hay un estado de bloqueo persistente al cargar la página
+    const wasLocked = localStorage.getItem('inventario_locked') === 'true';
+    if (wasLocked) {
+        isLocked = true;
+        document.body.classList.add('locked');
+        document.getElementById('lockModal').style.display = 'flex';
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
+    } else {
+        setupActivityListeners();
+        resetInactivityTimer();
+    }
+    
     cargarProductos();
 </script>
 </body>
 </html>
+```

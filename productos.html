@@ -38,20 +38,52 @@
             --error: #2a0a0a; --error-border: #ef5350;
         }
         body { font-family: 'Poppins', sans-serif; background: var(--bg); color: var(--text); padding: 24px; transition: all 0.3s; }
+        
+        /* Clase para cuando está bloqueado - opaca el contenido sin blur */
+        body.locked .container {
+            opacity: 0.2;
+            pointer-events: none;
+            user-select: none;
+        }
+        
         .container { max-width: 1600px; margin: 0 auto; }
+        
         .header-bar { background: var(--card); border-radius: 24px; padding: 20px 28px; margin-bottom: 28px; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; }
         .logo h1 { font-size: 1.6rem; background: linear-gradient(135deg, var(--primary), #48cae4); -webkit-background-clip: text; background-clip: text; color: transparent; }
         .logo p { font-size: 0.8rem; color: var(--muted); }
-        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; }
+        .header-actions { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+        
+        .lock-timer {
+            background: var(--warning);
+            color: #1a2c3e;
+            border-radius: 40px;
+            padding: 8px 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.8rem;
+            font-weight: 700;
+        }
+        .lock-timer i { font-size: 0.9rem; }
+        .lock-timer.warning { background: var(--danger); color: white; animation: pulse 1s infinite; }
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
         .btn { padding: 10px 20px; border-radius: 40px; border: none; font-weight: 600; cursor: pointer; transition: all 0.2s; font-family: 'Poppins', sans-serif; background: var(--primary); color: white; }
         .btn-outline { background: transparent; border: 2px solid var(--primary); color: var(--primary); }
         .btn-sm { padding: 6px 12px; font-size: 0.75rem; }
         .btn-success { background: var(--success); }
         .btn-danger { background: var(--danger); }
         .btn-secondary { background: #6c757d; }
+        .btn-lock { background: #ff9800; color: #1a2c3e; }
+        .btn-lock:hover { background: #f57c00; transform: translateY(-2px); }
         .btn-clear { background: #6c757d; color: white; }
         .btn-clear:hover { background: #5a6268; }
         .btn:hover { transform: translateY(-2px); filter: brightness(1.05); }
+        
         .alert-banner { background: linear-gradient(135deg, #ff6b6b, #c92a2a); color: white; padding: 12px 20px; border-radius: 12px; margin-bottom: 20px; display: none; align-items: center; justify-content: space-between; cursor: pointer; }
         
         .filters-panel {
@@ -361,6 +393,48 @@
         .precio-row { display: flex; gap: 12px; }
         .precio-row .input-group { flex: 1; }
         .shortcut-hint { font-size: 0.7rem; color: var(--muted); margin-top: 8px; text-align: center; }
+        
+        /* Modal de bloqueo - SIN BLUR */
+        .lock-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            justify-content: center;
+            align-items: center;
+            z-index: 2000;
+        }
+        .lock-modal-content {
+            background: var(--card);
+            border-radius: 28px;
+            width: 90%;
+            max-width: 450px;
+            padding: 32px;
+            text-align: center;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.4s ease;
+            position: relative;
+            z-index: 2001;
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .lock-icon { font-size: 4rem; color: var(--warning); margin-bottom: 16px; }
+        .lock-modal-content h2 { font-size: 1.5rem; margin-bottom: 8px; }
+        .lock-modal-content p { color: var(--muted); margin-bottom: 20px; font-size: 0.85rem; }
+        .lock-input-group { margin-bottom: 20px; text-align: left; }
+        .lock-input-group label { display: block; font-size: 0.75rem; font-weight: 600; margin-bottom: 6px; color: var(--muted); }
+        .lock-input-group input { width: 100%; padding: 12px 16px; border-radius: 40px; border: 2px solid var(--border); background: var(--bg); color: var(--text); font-family: 'Poppins', sans-serif; font-size: 0.9rem; }
+        .lock-input-group input:focus { outline: none; border-color: var(--primary); }
+        .lock-error { color: var(--danger); font-size: 0.7rem; margin-top: 8px; display: none; }
+        .lock-buttons { display: flex; gap: 12px; justify-content: center; }
+        .lock-buttons .btn { flex: 1; }
+        
+        kbd { background: var(--bg); padding: 2px 6px; border-radius: 4px; font-family: monospace; border: 1px solid var(--border); font-size: 0.7rem; }
     </style>
 </head>
 <body>
@@ -371,10 +445,16 @@
             <p>Gestión de inventario con trazabilidad por lote</p>
         </div>
         <div class="header-actions">
+            <div class="lock-timer" id="lockTimer">
+                <i class="fas fa-hourglass-half"></i>
+                <span id="timerSeconds">30</span> segundos
+            </div>
+            <button class="btn btn-lock" id="btnLockScreen"><i class="fas fa-lock"></i> Bloquear</button>
             <button class="btn btn-success" id="nuevoProductoBtnTop"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
             <button class="btn" id="modoOscuroBtn"><i class="fas fa-moon"></i> Modo</button>
-            <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-tachometer-alt"></i> Dashboard</button>
+            <button class="btn btn-outline" id="volverDashboard"><i class="fas fa-tachometer-alt"></i> Inicio</button>
             <button class="btn btn-outline" id="irVentas"><i class="fas fa-cash-register"></i> Ventas</button>
+            <button class="btn btn-danger" id="logoutBtn"><i class="fas fa-sign-out-alt"></i> Cerrar</button>
         </div>
     </div>
 
@@ -450,6 +530,30 @@
 
     <div style="text-align: right; margin-top: 8px;">
         <button class="btn" id="nuevoProductoBtn" style="background: var(--success);"><i class="fas fa-plus-circle"></i> Nuevo Producto</button>
+    </div>
+</div>
+
+<!-- MODAL DE BLOQUEO -->
+<div id="lockModal" class="lock-modal">
+    <div class="lock-modal-content">
+        <div class="lock-icon"><i class="fas fa-lock"></i></div>
+        <h2>Sesión Bloqueada</h2>
+        <p>Por seguridad, tu sesión ha sido bloqueada por inactividad.<br>Ingresa tus credenciales para continuar.</p>
+        <form id="unlockForm">
+            <div class="lock-input-group">
+                <label><i class="fas fa-user"></i> Usuario</label>
+                <input type="text" id="unlockUser" placeholder="Ingresa tu usuario" autocomplete="off">
+            </div>
+            <div class="lock-input-group">
+                <label><i class="fas fa-key"></i> Contraseña</label>
+                <input type="password" id="unlockPass" placeholder="Ingresa tu contraseña">
+            </div>
+            <div id="lockError" class="lock-error">❌ Usuario o contraseña incorrectos</div>
+            <div class="lock-buttons">
+                <button type="button" class="btn btn-outline" id="btnLogoutFromLock"><i class="fas fa-sign-out-alt"></i> Cerrar sesión</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-unlock-alt"></i> Desbloquear</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -622,323 +726,167 @@
     let productosFiltrados = [];
     let currentImageFile = null;
     let currentImagePreview = null;
-
-    // DOM Elements
-    const tableBody = document.getElementById('tableBody');
-    const barcodeInput = document.getElementById('barcodeInput');
-    const buscarBtn = document.getElementById('buscarBarcodeBtn');
-    const limpiarTodoBtn = document.getElementById('limpiarTodoBtn');
-    const nuevoBtn = document.getElementById('nuevoProductoBtn');
-    const nuevoBtnTop = document.getElementById('nuevoProductoBtnTop');
-    const modal = document.getElementById('productModal');
-    const agregarLoteModal = document.getElementById('agregarLoteModal');
-    const loteModal = document.getElementById('loteModal');
-    const categoriaModal = document.getElementById('categoriaModal');
-    const detallesModal = document.getElementById('detallesModal');
-    const imageViewerModal = document.getElementById('imageViewerModal');
-    const viewerImage = document.getElementById('viewerImage');
-    const viewerCaption = document.getElementById('viewerCaption');
     
-    // Elementos de imagen
-    const imageUploadArea = document.getElementById('imageUploadArea');
-    const productImageInput = document.getElementById('productImage');
-    const imagePreview = document.getElementById('imagePreview');
-    const previewImg = document.getElementById('previewImg');
-    const removeImageBtn = document.getElementById('removeImageBtn');
-    const imagenUrlInput = document.getElementById('imagen_url');
+    // ========== SISTEMA DE BLOQUEO (30 segundos) - CORREGIDO ==========
+    let inactivityTimer = null;
+    let countdownInterval = null;
+    let remainingSeconds = 30;
+    let isLocked = false;
     
-    // Filtros
-    const filtroCategoria = document.getElementById('filtroCategoria');
-    const filtroUnidadMedida = document.getElementById('filtroUnidadMedida');
-    const filtroStock = document.getElementById('filtroStock');
-    const filtroVencimiento = document.getElementById('filtroVencimiento');
-    const filtroProveedor = document.getElementById('filtroProveedor');
-    const filtroPrecioMin = document.getElementById('filtroPrecioMin');
-    const filtroPrecioMax = document.getElementById('filtroPrecioMax');
-    const aplicarFiltrosBtn = document.getElementById('aplicarFiltrosBtn');
-    const limpiarFiltrosBtn = document.getElementById('limpiarFiltrosBtn');
-    const filtrosStats = document.getElementById('filtrosStats');
-    
-    // Elementos del colapso
-    const filtersHeader = document.getElementById('filtersHeader');
-    const filtersContent = document.getElementById('filtersContent');
-    const toggleFiltersIcon = document.getElementById('toggleFiltersIcon');
-    let filtersCollapsed = localStorage.getItem('filtersCollapsed') === 'true';
-    
-    function toggleFilters() {
-        filtersCollapsed = !filtersCollapsed;
-        localStorage.setItem('filtersCollapsed', filtersCollapsed);
-        if (filtersCollapsed) {
-            filtersContent.classList.add('collapsed');
-            toggleFiltersIcon.classList.add('rotated');
-        } else {
-            filtersContent.classList.remove('collapsed');
-            toggleFiltersIcon.classList.remove('rotated');
-        }
-    }
-    
-    function initFiltersCollapse() {
-        if (filtersCollapsed) {
-            filtersContent.classList.add('collapsed');
-            toggleFiltersIcon.classList.add('rotated');
-        } else {
-            filtersContent.classList.remove('collapsed');
-            toggleFiltersIcon.classList.remove('rotated');
-        }
-        filtersHeader.addEventListener('click', toggleFilters);
-    }
-    
-    const closeModalBtns = [document.getElementById('closeModalBtn'), document.getElementById('cancelModalBtn'), document.getElementById('cancelModalBtn2')];
-    const closeAgregarLoteModalBtn = document.getElementById('closeAgregarLoteModalBtn');
-    const closeLoteModalBtn = document.getElementById('closeLoteModalBtn');
-    const closeCategoriaModalBtn = document.getElementById('closeCategoriaModalBtn');
-    const closeDetallesModalBtn = document.getElementById('closeDetallesModalBtn');
-    const cerrarDetallesBtn = document.getElementById('cerrarDetallesBtn');
-    const cancelLoteBtn = document.getElementById('cancelLoteBtn');
-    const cancelCategoriaBtn = document.getElementById('cancelCategoriaBtn');
-    const cancelAgregarLoteBtn = document.getElementById('cancelAgregarLoteBtn');
-    const productForm = document.getElementById('productForm');
-    const loteForm = document.getElementById('loteForm');
-    const categoriaForm = document.getElementById('categoriaForm');
-    const agregarLoteForm = document.getElementById('agregarLoteForm');
-    const modalTitle = document.getElementById('modalTitle');
-    const loteModalTitle = document.getElementById('loteModalTitle');
-    const volverDashboard = document.getElementById('volverDashboard');
-    const irVentas = document.getElementById('irVentas');
-    const nuevaCategoriaBtn = document.getElementById('nuevaCategoriaBtn');
-    
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    const backToStep2Btn = document.getElementById('backToStep2Btn');
-    const submitBtn = document.getElementById('submitBtn');
-    const steps = document.querySelectorAll('.step');
-    const navButtonsStep1y2 = document.getElementById('navButtonsStep1y2');
-    const step3Buttons = document.getElementById('step3Buttons');
-    let currentStep = 1;
-    const totalSteps = 3;
-
-    // FUNCIONES PARA MANEJO DE IMÁGENES
-    function initImageHandlers() {
-        imageUploadArea.addEventListener('click', () => {
-            productImageInput.click();
-        });
+    function resetInactivityTimer() {
+        if (isLocked) return;
         
-        imageUploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            imageUploadArea.style.borderColor = 'var(--primary)';
-            imageUploadArea.style.background = 'var(--bg)';
-        });
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        if (countdownInterval) clearInterval(countdownInterval);
         
-        imageUploadArea.addEventListener('dragleave', (e) => {
-            e.preventDefault();
-            imageUploadArea.style.borderColor = 'var(--border)';
-            imageUploadArea.style.background = 'transparent';
-        });
+        remainingSeconds = 30;
+        updateTimerDisplay();
         
-        imageUploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            imageUploadArea.style.borderColor = 'var(--border)';
-            const file = e.dataTransfer.files[0];
-            if (file && file.type.startsWith('image/')) {
-                handleImageFile(file);
+        countdownInterval = setInterval(() => {
+            if (!isLocked && remainingSeconds > 0) {
+                remainingSeconds--;
+                updateTimerDisplay();
             }
-        });
+        }, 1000);
         
-        productImageInput.addEventListener('change', (e) => {
-            if (e.target.files && e.target.files[0]) {
-                handleImageFile(e.target.files[0]);
+        inactivityTimer = setTimeout(() => {
+            if (!isLocked) {
+                lockScreen();
             }
-        });
+        }, 30000);
+    }
+    
+    function updateTimerDisplay() {
+        const timerSpan = document.getElementById('timerSeconds');
+        if (timerSpan) timerSpan.innerText = remainingSeconds;
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) {
+            if (remainingSeconds <= 10) {
+                timerDiv.classList.add('warning');
+            } else {
+                timerDiv.classList.remove('warning');
+            }
+        }
+    }
+    
+    function lockScreen() {
+        if (isLocked) return;
+        isLocked = true;
         
-        removeImageBtn.addEventListener('click', () => {
-            clearImage();
-        });
-    }
-    
-    function handleImageFile(file) {
-        if (file.size > 2 * 1024 * 1024) {
-            alert('La imagen no puede superar los 2MB');
-            return;
-        }
+        localStorage.setItem('screen_locked_inventario', 'true');
         
-        currentImageFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            currentImagePreview = e.target.result;
-            previewImg.src = currentImagePreview;
-            imagePreview.style.display = 'block';
-            imageUploadArea.style.display = 'none';
-            imagenUrlInput.value = '';
-        };
-        reader.readAsDataURL(file);
+        if (countdownInterval) clearInterval(countdownInterval);
+        if (inactivityTimer) clearTimeout(inactivityTimer);
+        
+        // Añadir clase al body para opacar el contenido SIN blur
+        document.body.classList.add('locked');
+        
+        const lockModal = document.getElementById('lockModal');
+        lockModal.style.display = 'flex';
+        document.getElementById('unlockUser').value = '';
+        document.getElementById('unlockPass').value = '';
+        document.getElementById('lockError').style.display = 'none';
+        
+        const timerDiv = document.getElementById('lockTimer');
+        if (timerDiv) timerDiv.style.opacity = '0.5';
     }
     
-    function clearImage() {
-        currentImageFile = null;
-        currentImagePreview = null;
-        previewImg.src = '';
-        imagePreview.style.display = 'none';
-        imageUploadArea.style.display = 'block';
-        imagenUrlInput.value = '';
-        productImageInput.value = '';
-    }
-    
-    function setImageFromUrl(url) {
-        if (url && url.startsWith('data:image')) {
-            currentImagePreview = url;
-            previewImg.src = url;
-            imagePreview.style.display = 'block';
-            imageUploadArea.style.display = 'none';
-            imagenUrlInput.value = '';
-            currentImageFile = null;
-        } else if (url) {
-            currentImagePreview = url;
-            previewImg.src = url;
-            imagePreview.style.display = 'block';
-            imageUploadArea.style.display = 'none';
-            imagenUrlInput.value = url;
-            currentImageFile = null;
+    async function unlockScreen(usuario, password) {
+        try {
+            let response = await fetch(`/login_admin`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ usuario, password })
+            });
+            
+            let data = await response.json();
+            
+            if (!data.success) {
+                response = await fetch(`/login_empleado`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ usuario, password })
+                });
+                data = await response.json();
+            }
+            
+            if (data.success && data.rol === 'Administrador') {
+                isLocked = false;
+                localStorage.removeItem('screen_locked_inventario');
+                
+                // Remover clase de bloqueo del body
+                document.body.classList.remove('locked');
+                
+                document.getElementById('lockModal').style.display = 'none';
+                document.getElementById('lockError').style.display = 'none';
+                
+                const timerDiv = document.getElementById('lockTimer');
+                if (timerDiv) timerDiv.style.opacity = '1';
+                
+                localStorage.setItem("sesion_activa", "true");
+                localStorage.setItem("usuario", data.usuario);
+                localStorage.setItem("nombre_completo", data.nombre_completo);
+                localStorage.setItem("rol", data.rol);
+                
+                resetInactivityTimer();
+                cargarProductos();
+                return true;
+            } else {
+                document.getElementById('lockError').textContent = '❌ ' + (data.message || 'Usuario o contraseña incorrectos');
+                document.getElementById('lockError').style.display = 'block';
+                return false;
+            }
+        } catch (error) {
+            document.getElementById('lockError').textContent = '❌ Error de conexión';
+            document.getElementById('lockError').style.display = 'block';
+            return false;
         }
     }
     
-    function getImageData() {
-        if (currentImagePreview) {
-            return currentImagePreview;
-        }
-        return imagenUrlInput.value || null;
+    function logoutFromLock() {
+        localStorage.removeItem('screen_locked_inventario');
+        localStorage.removeItem('sesion_activa');
+        localStorage.removeItem('usuario');
+        localStorage.removeItem('nombre_completo');
+        localStorage.removeItem('rol');
+        localStorage.removeItem('inv.user');
+        window.location.href = 'roles.html';
     }
-
-    function showStep(step) {
-        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-        document.getElementById(`step${step}`).classList.add('active');
-        steps.forEach((stepEl, index) => {
-            const stepNum = index + 1;
-            if (stepNum < step) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); }
-            else if (stepNum === step) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); }
-            else { stepEl.classList.remove('active', 'completed'); }
+    
+    function onUserActivity() {
+        if (!isLocked) {
+            resetInactivityTimer();
+        }
+    }
+    
+    function setupActivityListeners() {
+        const events = ['mousedown', 'mousemove', 'keypress', 'scroll', 'touchstart', 'click'];
+        events.forEach(event => {
+            document.addEventListener(event, onUserActivity);
         });
-        if (step === 3) {
-            navButtonsStep1y2.style.display = 'none';
-            step3Buttons.style.display = 'flex';
+    }
+    
+    function manualLock() {
+        lockScreen();
+    }
+    
+    function checkLockStateOnLoad() {
+        const locked = localStorage.getItem('screen_locked_inventario') === 'true';
+        if (locked) {
+            isLocked = true;
+            document.body.classList.add('locked');
+            const lockModal = document.getElementById('lockModal');
+            lockModal.style.display = 'flex';
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            const timerDiv = document.getElementById('lockTimer');
+            if (timerDiv) timerDiv.style.opacity = '0.5';
         } else {
-            navButtonsStep1y2.style.display = 'flex';
-            step3Buttons.style.display = 'none';
-            prevBtn.style.display = step === 1 ? 'none' : 'inline-flex';
-            nextBtn.style.display = step === totalSteps ? 'none' : 'inline-flex';
+            resetInactivityTimer();
         }
-        currentStep = step;
-    }
-
-    function validateStep1() {
-        let isValid = true;
-        const codigoBarras = document.getElementById('codigo_barras');
-        const nombre = document.getElementById('nombre');
-        const categoria = document.getElementById('categoria');
-        const unidadMedida = document.getElementById('unidad_medida');
-        const cantidadPorUnidad = document.getElementById('cantidad_por_unidad');
-        
-        if (!codigoBarras.value.trim()) { 
-            codigoBarras.classList.add('error'); 
-            document.getElementById('error_codigo_barras').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            codigoBarras.classList.remove('error'); 
-            document.getElementById('error_codigo_barras').style.display = 'none'; 
-        }
-        
-        if (!nombre.value.trim()) { 
-            nombre.classList.add('error'); 
-            document.getElementById('error_nombre').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            nombre.classList.remove('error'); 
-            document.getElementById('error_nombre').style.display = 'none'; 
-        }
-        
-        if (!categoria.value) { 
-            categoria.classList.add('error'); 
-            document.getElementById('error_categoria').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            categoria.classList.remove('error'); 
-            document.getElementById('error_categoria').style.display = 'none'; 
-        }
-        
-        if (!unidadMedida.value) { 
-            unidadMedida.classList.add('error'); 
-            document.getElementById('error_unidad_medida').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            unidadMedida.classList.remove('error'); 
-            document.getElementById('error_unidad_medida').style.display = 'none'; 
-        }
-        
-        const cantUnidad = parseInt(cantidadPorUnidad.value);
-        if (isNaN(cantUnidad) || cantUnidad < 1) { 
-            cantidadPorUnidad.classList.add('error'); 
-            document.getElementById('error_cantidad_por_unidad').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            cantidadPorUnidad.classList.remove('error'); 
-            document.getElementById('error_cantidad_por_unidad').style.display = 'none'; 
-        }
-        
-        return isValid;
     }
     
-    function validateStep2() {
-        let isValid = true;
-        const precioCompra = document.getElementById('precio_compra');
-        const precioVenta = document.getElementById('precio_venta');
-        const stockMinimo = document.getElementById('stock_minimo');
-        
-        const pCompra = parseFloat(precioCompra.value);
-        if (isNaN(pCompra) || pCompra < 0) { 
-            precioCompra.classList.add('error'); 
-            document.getElementById('error_precio_compra').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            precioCompra.classList.remove('error'); 
-            document.getElementById('error_precio_compra').style.display = 'none'; 
-        }
-        
-        const pVenta = parseFloat(precioVenta.value);
-        if (isNaN(pVenta) || pVenta < 0) { 
-            precioVenta.classList.add('error'); 
-            document.getElementById('error_precio_venta').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            precioVenta.classList.remove('error'); 
-            document.getElementById('error_precio_venta').style.display = 'none'; 
-        }
-        
-        const sMinimo = parseInt(stockMinimo.value);
-        if (isNaN(sMinimo) || sMinimo < 0) { 
-            stockMinimo.classList.add('error'); 
-            document.getElementById('error_stock_minimo').style.display = 'block'; 
-            isValid = false; 
-        } else { 
-            stockMinimo.classList.remove('error'); 
-            document.getElementById('error_stock_minimo').style.display = 'none'; 
-        }
-        
-        return isValid;
-    }
-
-    nextBtn.addEventListener('click', () => {
-        if (currentStep === 1 && validateStep1()) {
-            showStep(2);
-        } else if (currentStep === 2 && validateStep2()) {
-            showStep(3);
-        }
-    });
-    
-    prevBtn.addEventListener('click', () => { 
-        if (currentStep > 1) showStep(currentStep - 1); 
-    });
-    
-    backToStep2Btn.addEventListener('click', () => showStep(2));
-
+    // ========== FUNCIONES EXISTENTES ==========
     function escapeHtml(str) { if(!str) return ''; return String(str).replace(/[&<>]/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;'})[m]); }
 
     function getStockBadge(stock, minStock) {
@@ -1045,7 +993,7 @@
 
     async function renderTabla(productosArray) {
         if (!productosArray.length) { 
-            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">📭 No hay productos registrados</td></table>'; 
+            tableBody.innerHTML = '<tr><td colspan="12" style="text-align:center">📭 No hay productos registrados</td></tr>'; 
             return; 
         }
         
@@ -1248,7 +1196,7 @@
             categoria: productoBase.categoria,
             precio_compra: precioCompraFinal,
             precio_venta: precioVentaFinal,
-            stock: 0, // CRUCIAL: Iniciar stock en 0
+            stock: 0,
             stock_minimo: productoBase.stock_minimo,
             unidad_medida: nuevoFormato,
             cantidad_por_unidad: nuevaCantidad,
@@ -1416,7 +1364,148 @@
         }
     }
 
-    // ========== CORRECCIÓN DEL FORMULARIO DE PRODUCTO ==========
+    // ========== FORMULARIO DE PRODUCTO ==========
+    const productForm = document.getElementById('productForm');
+    const nextBtn = document.getElementById('nextBtn');
+    const prevBtn = document.getElementById('prevBtn');
+    const backToStep2Btn = document.getElementById('backToStep2Btn');
+    const steps = document.querySelectorAll('.step');
+    const navButtonsStep1y2 = document.getElementById('navButtonsStep1y2');
+    const step3Buttons = document.getElementById('step3Buttons');
+    let currentStep = 1;
+    const totalSteps = 3;
+
+    function showStep(step) {
+        document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+        document.getElementById(`step${step}`).classList.add('active');
+        steps.forEach((stepEl, index) => {
+            const stepNum = index + 1;
+            if (stepNum < step) { stepEl.classList.add('completed'); stepEl.classList.remove('active'); }
+            else if (stepNum === step) { stepEl.classList.add('active'); stepEl.classList.remove('completed'); }
+            else { stepEl.classList.remove('active', 'completed'); }
+        });
+        if (step === 3) {
+            navButtonsStep1y2.style.display = 'none';
+            step3Buttons.style.display = 'flex';
+        } else {
+            navButtonsStep1y2.style.display = 'flex';
+            step3Buttons.style.display = 'none';
+            prevBtn.style.display = step === 1 ? 'none' : 'inline-flex';
+            nextBtn.style.display = step === totalSteps ? 'none' : 'inline-flex';
+        }
+        currentStep = step;
+    }
+
+    function validateStep1() {
+        let isValid = true;
+        const codigoBarras = document.getElementById('codigo_barras');
+        const nombre = document.getElementById('nombre');
+        const categoria = document.getElementById('categoria');
+        const unidadMedida = document.getElementById('unidad_medida');
+        const cantidadPorUnidad = document.getElementById('cantidad_por_unidad');
+        
+        if (!codigoBarras.value.trim()) { 
+            codigoBarras.classList.add('error'); 
+            document.getElementById('error_codigo_barras').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            codigoBarras.classList.remove('error'); 
+            document.getElementById('error_codigo_barras').style.display = 'none'; 
+        }
+        
+        if (!nombre.value.trim()) { 
+            nombre.classList.add('error'); 
+            document.getElementById('error_nombre').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            nombre.classList.remove('error'); 
+            document.getElementById('error_nombre').style.display = 'none'; 
+        }
+        
+        if (!categoria.value) { 
+            categoria.classList.add('error'); 
+            document.getElementById('error_categoria').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            categoria.classList.remove('error'); 
+            document.getElementById('error_categoria').style.display = 'none'; 
+        }
+        
+        if (!unidadMedida.value) { 
+            unidadMedida.classList.add('error'); 
+            document.getElementById('error_unidad_medida').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            unidadMedida.classList.remove('error'); 
+            document.getElementById('error_unidad_medida').style.display = 'none'; 
+        }
+        
+        const cantUnidad = parseInt(cantidadPorUnidad.value);
+        if (isNaN(cantUnidad) || cantUnidad < 1) { 
+            cantidadPorUnidad.classList.add('error'); 
+            document.getElementById('error_cantidad_por_unidad').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            cantidadPorUnidad.classList.remove('error'); 
+            document.getElementById('error_cantidad_por_unidad').style.display = 'none'; 
+        }
+        
+        return isValid;
+    }
+    
+    function validateStep2() {
+        let isValid = true;
+        const precioCompra = document.getElementById('precio_compra');
+        const precioVenta = document.getElementById('precio_venta');
+        const stockMinimo = document.getElementById('stock_minimo');
+        
+        const pCompra = parseFloat(precioCompra.value);
+        if (isNaN(pCompra) || pCompra < 0) { 
+            precioCompra.classList.add('error'); 
+            document.getElementById('error_precio_compra').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            precioCompra.classList.remove('error'); 
+            document.getElementById('error_precio_compra').style.display = 'none'; 
+        }
+        
+        const pVenta = parseFloat(precioVenta.value);
+        if (isNaN(pVenta) || pVenta < 0) { 
+            precioVenta.classList.add('error'); 
+            document.getElementById('error_precio_venta').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            precioVenta.classList.remove('error'); 
+            document.getElementById('error_precio_venta').style.display = 'none'; 
+        }
+        
+        const sMinimo = parseInt(stockMinimo.value);
+        if (isNaN(sMinimo) || sMinimo < 0) { 
+            stockMinimo.classList.add('error'); 
+            document.getElementById('error_stock_minimo').style.display = 'block'; 
+            isValid = false; 
+        } else { 
+            stockMinimo.classList.remove('error'); 
+            document.getElementById('error_stock_minimo').style.display = 'none'; 
+        }
+        
+        return isValid;
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentStep === 1 && validateStep1()) {
+            showStep(2);
+        } else if (currentStep === 2 && validateStep2()) {
+            showStep(3);
+        }
+    });
+    
+    prevBtn.addEventListener('click', () => { 
+        if (currentStep > 1) showStep(currentStep - 1); 
+    });
+    
+    backToStep2Btn.addEventListener('click', () => showStep(2));
+
     productForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         if (!validateStep1() || !validateStep2()) {
@@ -1455,7 +1544,6 @@
         let res, productoId;
         
         if (id) {
-            // EDITAR PRODUCTO EXISTENTE
             res = await fetch(`${API_URL}/products/${id}`, { 
                 method: 'PUT', 
                 headers: { 'Content-Type': 'application/json' }, 
@@ -1466,7 +1554,6 @@
             productoId = parseInt(id);
             
             if (loteIdExistente) {
-                // Actualizar lote existente
                 const loteData = { 
                     producto_id: productoId, 
                     cantidad: cantidadLote, 
@@ -1481,7 +1568,6 @@
                 });
                 alert('✅ Producto y lote actualizados correctamente');
             } else {
-                // Agregar nuevo lote a producto existente
                 const loteData = { 
                     producto_id: productoId, 
                     cantidad: cantidadLote, 
@@ -1497,10 +1583,7 @@
                 alert('✅ Nuevo lote agregado al producto');
             }
         } else {
-            // ========== NUEVO PRODUCTO - CORREGIDO ==========
-            // IMPORTANTE: NO enviar stock en el payload para productos nuevos
-            // El stock se manejará SOLO desde el lote
-            payload.stock = 0; // <-- CRUCIAL: Iniciar stock en 0
+            payload.stock = 0;
             
             res = await fetch(`${API_URL}/products`, { 
                 method: 'POST', 
@@ -1514,7 +1597,6 @@
             }
             productoId = data.id;
             
-            // Registrar el lote - EL SERVIDOR ASIGNARÁ EL STOCK CORRECTAMENTE
             const loteData = { 
                 producto_id: productoId, 
                 cantidad: cantidadLote, 
@@ -1627,6 +1709,145 @@
         } catch(e) { alert('❌ Error al eliminar'); }
     };
 
+    // ========== IMÁGENES ==========
+    function initImageHandlers() {
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const productImageInput = document.getElementById('productImage');
+        const removeImageBtn = document.getElementById('removeImageBtn');
+        
+        imageUploadArea.addEventListener('click', () => {
+            productImageInput.click();
+        });
+        
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = 'var(--primary)';
+            imageUploadArea.style.background = 'var(--bg)';
+        });
+        
+        imageUploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = 'var(--border)';
+            imageUploadArea.style.background = 'transparent';
+        });
+        
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.style.borderColor = 'var(--border)';
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('image/')) {
+                handleImageFile(file);
+            }
+        });
+        
+        productImageInput.addEventListener('change', (e) => {
+            if (e.target.files && e.target.files[0]) {
+                handleImageFile(e.target.files[0]);
+            }
+        });
+        
+        removeImageBtn.addEventListener('click', () => {
+            clearImage();
+        });
+    }
+    
+    function handleImageFile(file) {
+        if (file.size > 2 * 1024 * 1024) {
+            alert('La imagen no puede superar los 2MB');
+            return;
+        }
+        
+        currentImageFile = file;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            currentImagePreview = e.target.result;
+            const previewImg = document.getElementById('previewImg');
+            const imagePreview = document.getElementById('imagePreview');
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            previewImg.src = currentImagePreview;
+            imagePreview.style.display = 'block';
+            imageUploadArea.style.display = 'none';
+            document.getElementById('imagen_url').value = '';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function clearImage() {
+        currentImageFile = null;
+        currentImagePreview = null;
+        const previewImg = document.getElementById('previewImg');
+        const imagePreview = document.getElementById('imagePreview');
+        const imageUploadArea = document.getElementById('imageUploadArea');
+        const productImageInput = document.getElementById('productImage');
+        previewImg.src = '';
+        imagePreview.style.display = 'none';
+        imageUploadArea.style.display = 'block';
+        document.getElementById('imagen_url').value = '';
+        productImageInput.value = '';
+    }
+    
+    function setImageFromUrl(url) {
+        if (url && url.startsWith('data:image')) {
+            currentImagePreview = url;
+            const previewImg = document.getElementById('previewImg');
+            const imagePreview = document.getElementById('imagePreview');
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            previewImg.src = url;
+            imagePreview.style.display = 'block';
+            imageUploadArea.style.display = 'none';
+            document.getElementById('imagen_url').value = '';
+            currentImageFile = null;
+        } else if (url) {
+            currentImagePreview = url;
+            const previewImg = document.getElementById('previewImg');
+            const imagePreview = document.getElementById('imagePreview');
+            const imageUploadArea = document.getElementById('imageUploadArea');
+            previewImg.src = url;
+            imagePreview.style.display = 'block';
+            imageUploadArea.style.display = 'none';
+            document.getElementById('imagen_url').value = url;
+            currentImageFile = null;
+        }
+    }
+    
+    function getImageData() {
+        if (currentImagePreview) {
+            return currentImagePreview;
+        }
+        return document.getElementById('imagen_url').value || null;
+    }
+
+    // ========== FILTROS ==========
+    const filtersHeader = document.getElementById('filtersHeader');
+    const filtersContent = document.getElementById('filtersContent');
+    const toggleFiltersIcon = document.getElementById('toggleFiltersIcon');
+    let filtersCollapsed = localStorage.getItem('filtersCollapsed_inventario') === 'true';
+    
+    function toggleFilters() {
+        filtersCollapsed = !filtersCollapsed;
+        localStorage.setItem('filtersCollapsed_inventario', filtersCollapsed);
+        if (filtersCollapsed) {
+            filtersContent.classList.add('collapsed');
+            toggleFiltersIcon.classList.add('rotated');
+        } else {
+            filtersContent.classList.remove('collapsed');
+            toggleFiltersIcon.classList.remove('rotated');
+        }
+    }
+    
+    function initFiltersCollapse() {
+        if (filtersCollapsed) {
+            filtersContent.classList.add('collapsed');
+            toggleFiltersIcon.classList.add('rotated');
+        } else {
+            filtersContent.classList.remove('collapsed');
+            toggleFiltersIcon.classList.remove('rotated');
+        }
+        filtersHeader.addEventListener('click', toggleFilters);
+    }
+
+    // ========== CATEGORÍA ==========
+    const categoriaForm = document.getElementById('categoriaForm');
     categoriaForm.addEventListener('submit', async (e) => {
         e.preventDefault();
         const nombre = document.getElementById('nuevaCategoriaNombre').value.trim();
@@ -1637,25 +1858,67 @@
         else alert('❌ Error al crear categoría');
     });
 
+    // ========== EVENT LISTENERS ==========
+    const buscarBtn = document.getElementById('buscarBarcodeBtn');
+    const limpiarTodoBtn = document.getElementById('limpiarTodoBtn');
+    const aplicarFiltrosBtn = document.getElementById('aplicarFiltrosBtn');
+    const limpiarFiltrosBtn = document.getElementById('limpiarFiltrosBtn');
+    const barcodeInput = document.getElementById('barcodeInput');
+    const filtroCategoria = document.getElementById('filtroCategoria');
+    const filtroUnidadMedida = document.getElementById('filtroUnidadMedida');
+    const filtroStock = document.getElementById('filtroStock');
+    const filtroVencimiento = document.getElementById('filtroVencimiento');
+    const filtroProveedor = document.getElementById('filtroProveedor');
+    const filtroPrecioMin = document.getElementById('filtroPrecioMin');
+    const filtroPrecioMax = document.getElementById('filtroPrecioMax');
+    const filtrosStats = document.getElementById('filtrosStats');
+    const tableBody = document.getElementById('tableBody');
+    
     buscarBtn.addEventListener('click', () => buscarPorCodigo(barcodeInput.value));
     limpiarTodoBtn.addEventListener('click', limpiarTodo);
     aplicarFiltrosBtn.addEventListener('click', aplicarFiltros);
     limpiarFiltrosBtn.addEventListener('click', limpiarFiltros);
+    
+    const nuevoBtn = document.getElementById('nuevoProductoBtn');
+    const nuevoBtnTop = document.getElementById('nuevoProductoBtnTop');
+    const nuevaCategoriaBtn = document.getElementById('nuevaCategoriaBtn');
+    const volverDashboard = document.getElementById('volverDashboard');
+    const irVentas = document.getElementById('irVentas');
+    const modal = document.getElementById('productModal');
+    const agregarLoteModal = document.getElementById('agregarLoteModal');
+    const loteModal = document.getElementById('loteModal');
+    const categoriaModal = document.getElementById('categoriaModal');
+    const detallesModal = document.getElementById('detallesModal');
+    const imageViewerModal = document.getElementById('imageViewerModal');
+    const viewerImage = document.getElementById('viewerImage');
+    const viewerCaption = document.getElementById('viewerCaption');
     
     function abrirNuevoProducto() {
         limpiarFormularioProducto();
         modalTitle.innerHTML = '<i class="fas fa-plus-circle"></i> Nuevo Producto';
         modal.style.display = 'flex';
     }
+    
+    function navegarA(destino) {
+        localStorage.removeItem('screen_locked_inventario');
+        localStorage.removeItem('screen_locked_index');
+        localStorage.removeItem('screen_locked_ventas');
+        localStorage.removeItem('screen_locked_alertas');
+        localStorage.removeItem('screen_locked_usuarios');
+        window.location.href = destino;
+    }
+
     nuevoBtn.addEventListener('click', abrirNuevoProducto);
     nuevoBtnTop.addEventListener('click', abrirNuevoProducto);
-    
     nuevaCategoriaBtn.addEventListener('click', () => categoriaModal.style.display = 'flex');
+    volverDashboard.addEventListener('click', () => navegarA('/dashboard'));
+    irVentas.addEventListener('click', () => navegarA('/ventas'));
     
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
             limpiarTodo();
         }
+        if (!isLocked) resetInactivityTimer();
     });
     
     barcodeInput.addEventListener('keypress', (e) => {
@@ -1664,16 +1927,18 @@
         }
     });
     
+    // Cerrar modales
     function cerrarModal(modalElement) { modalElement.style.display = 'none'; }
+    const closeModalBtns = [document.getElementById('closeModalBtn'), document.getElementById('cancelModalBtn'), document.getElementById('cancelModalBtn2')];
     closeModalBtns.forEach(btn => btn?.addEventListener('click', () => cerrarModal(modal)));
-    closeAgregarLoteModalBtn?.addEventListener('click', () => cerrarModal(agregarLoteModal));
-    closeLoteModalBtn?.addEventListener('click', () => cerrarModal(loteModal));
-    closeCategoriaModalBtn?.addEventListener('click', () => cerrarModal(categoriaModal));
-    closeDetallesModalBtn?.addEventListener('click', () => cerrarModal(detallesModal));
-    cerrarDetallesBtn?.addEventListener('click', () => cerrarModal(detallesModal));
-    cancelLoteBtn?.addEventListener('click', () => cerrarModal(loteModal));
-    cancelCategoriaBtn?.addEventListener('click', () => cerrarModal(categoriaModal));
-    cancelAgregarLoteBtn?.addEventListener('click', () => cerrarModal(agregarLoteModal));
+    document.getElementById('closeAgregarLoteModalBtn')?.addEventListener('click', () => cerrarModal(agregarLoteModal));
+    document.getElementById('closeLoteModalBtn')?.addEventListener('click', () => cerrarModal(loteModal));
+    document.getElementById('closeCategoriaModalBtn')?.addEventListener('click', () => cerrarModal(categoriaModal));
+    document.getElementById('closeDetallesModalBtn')?.addEventListener('click', () => cerrarModal(detallesModal));
+    document.getElementById('cerrarDetallesBtn')?.addEventListener('click', () => cerrarModal(detallesModal));
+    document.getElementById('cancelLoteBtn')?.addEventListener('click', () => cerrarModal(loteModal));
+    document.getElementById('cancelCategoriaBtn')?.addEventListener('click', () => cerrarModal(categoriaModal));
+    document.getElementById('cancelAgregarLoteBtn')?.addEventListener('click', () => cerrarModal(agregarLoteModal));
     
     document.querySelector('.image-modal-close')?.addEventListener('click', () => {
         imageViewerModal.style.display = 'none';
@@ -1692,18 +1957,52 @@
         if (e.target === detallesModal) cerrarModal(detallesModal); 
     });
     
-    volverDashboard.addEventListener('click', () => { window.location.href = '/dashboard'; });
-    irVentas.addEventListener('click', () => { window.location.href = '/ventas'; });
-
+    // Modo oscuro
     const modoBtn = document.getElementById('modoOscuroBtn');
     function toggleModo() { document.body.classList.toggle('dark'); localStorage.setItem('modoSupermercado', document.body.classList.contains('dark')); modoBtn.innerHTML = document.body.classList.contains('dark') ? '<i class="fas fa-sun"></i> Claro' : '<i class="fas fa-moon"></i> Oscuro'; }
     if (localStorage.getItem('modoSupermercado') === 'true') { document.body.classList.add('dark'); modoBtn.innerHTML = '<i class="fas fa-sun"></i> Claro'; }
     modoBtn.addEventListener('click', toggleModo);
-
+    
+    // ========== CERRAR SESIÓN ==========
+    document.getElementById('logoutBtn')?.addEventListener('click', () => {
+        if (confirm('¿Cerrar sesión?')) {
+            if (countdownInterval) clearInterval(countdownInterval);
+            if (inactivityTimer) clearTimeout(inactivityTimer);
+            localStorage.removeItem('screen_locked_inventario');
+            localStorage.removeItem('sesion_activa');
+            localStorage.removeItem('usuario');
+            localStorage.removeItem('nombre_completo');
+            localStorage.removeItem('rol');
+            localStorage.removeItem('inv.user');
+            window.location.href = 'roles.html';
+        }
+    });
+    
+    document.getElementById('btnLockScreen')?.addEventListener('click', manualLock);
+    document.getElementById('btnLogoutFromLock')?.addEventListener('click', logoutFromLock);
+    document.getElementById('unlockForm')?.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const usuario = document.getElementById('unlockUser').value.trim();
+        const password = document.getElementById('unlockPass').value;
+        if (!usuario || !password) {
+            document.getElementById('lockError').textContent = '❌ Ingresa usuario y contraseña';
+            document.getElementById('lockError').style.display = 'block';
+            return;
+        }
+        await unlockScreen(usuario, password);
+    });
+    
+    // ========== INICIAR ==========
+    setupActivityListeners();
+    checkLockStateOnLoad();
     initImageHandlers();
     initFiltersCollapse();
     cargarCategorias();
     cargarProductos();
+    
+    console.log('✅ Sistema de inventario listo!');
+    console.log('🔒 Bloqueo por inactividad: 30 segundos (CORREGIDO - sin blur)');
+    console.log('💡 El contenido se opaca pero NO se ve borroso');
 </script>
 </body>
 </html>
